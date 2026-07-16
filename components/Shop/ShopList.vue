@@ -1,66 +1,63 @@
 <script lang="ts" setup>
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { UserStore } from '@/stores/user';
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { UseShopStore } from "@/stores/shop";
 
 const router = useRouter();
-const userStore = UserStore();
+const shopStore = UseShopStore();
 
-const response = computed(() => {
-  return userStore.response_query_data;
-});
+const response = computed(() => shopStore.response_query_data);
 
 onMounted(async () => {
-  userStore.GetListData();
+  shopStore.GetListData();
 });
 
-const request = userStore.request_query_data;
+const request = shopStore.request_query_data;
 
 async function onSelectionChange(limit: number) {
   request.limit = limit;
-  await userStore.GetListData();
+  await shopStore.GetListData();
 }
 
 async function onPageChange(page: number) {
   request.page = page;
-  await userStore.GetListData();
+  await shopStore.GetListData();
 }
 
 const headers = ref([
   { title: "ລຳດັບ", key: "no", sortable: false },
-  { title: "ຊື່ຜູ້ໃຊ້ງານ", key: "username", sortable: false },
-  { title: "ອີເມວ", key: "email", sortable: false },
-  { title: "ຊື່ແທ້", key: "full_name", sortable: false },
+  { title: "ຊື່ຮ້ານ", key: "shop_name", sortable: false },
+  { title: "ເບີໂທ", key: "phone", sortable: false },
+  { title: "Timezone", key: "timezone", sortable: false },
   { title: "ສະຖານະ", key: "status", sortable: false },
   { title: "Actions", key: "actions", sortable: false },
 ]);
 
-const formatNumber = (num: number) => {
-  return new Intl.NumberFormat().format(num);
-};
+const formatNumber = (num: number) => new Intl.NumberFormat().format(num);
 
 const goPath = (path: string) => {
   router.push(path);
 };
 
 const onsetinput = async (input: string | null) => {
-  if (request !== null) {
-    request.q = input ?? null;
-    await userStore.GetListData();
-  }
+  request.q = input ?? null;
+  await shopStore.GetListData();
 };
 
-const onDelete = async (id: number) => {
-  await userStore.DeleteData(id);
+const statusColor = (status: string) => {
+  if (status === "ACTIVE") return "info";
+  if (status === "TRIAL") return "warning";
+  return "error";
 };
 </script>
+
 <template>
   <div class="pa-6">
     <v-card elevation="0" tile width="100%" min-height="95vh" class="pa-6">
       <v-row>
         <v-col cols="12">
           <GlobalTextTitleLine
-            :title="`ໜ້າຈັດການຜູ້ໃຊ້ງານ / Manage User (${formatNumber(
+            :title="`ໜ້າຈັດການຮ້ານຄ້າ / Manage Shop (${formatNumber(
               response?.pagination?.total_page ?? 0
             )})`"
           />
@@ -78,28 +75,22 @@ const onDelete = async (id: number) => {
                 @setinput="onsetinput"
               />
             </div>
-
             <div class="d-flex align-end">
               <v-btn
                 class="w-100 w-sm-auto"
                 color="primary"
                 flat
                 :loading="request.loading"
-                @click="userStore.GetListData()"
+                @click="shopStore.GetListData()"
                 >ຄົ້ນຫາ</v-btn
               >
             </div>
           </div>
 
           <div class="d-flex">
-            <v-btn
-              class="w-100 w-md-auto"
-              color="primary"
-              elevation="0"
-              @click="goPath('/user/create')"
-            >
+            <v-btn class="w-100 w-md-auto" color="primary" elevation="0" @click="goPath('/shop/create')">
               <v-icon class="mr-2"> mdi-plus</v-icon>
-              ເພີ່ມຜູ້ໃຊ້ງານ
+              ເພີ່ມຮ້ານຄ້າ
             </v-btn>
           </div>
         </v-col>
@@ -116,12 +107,7 @@ const onDelete = async (id: number) => {
             </template>
 
             <template v-slot:item.status="{ item }">
-              <span v-if="item.is_active === true">
-                <v-chip color="info">ເປີດໃຊ້ງານ</v-chip>
-              </span>
-              <span v-else>
-                <v-chip color="error">ປິດໃຊ້ງານ</v-chip>
-              </span>
+              <v-chip :color="statusColor(item.status)">{{ item.status }}</v-chip>
             </template>
 
             <template v-slot:item.actions="{ item }">
@@ -130,21 +116,21 @@ const onDelete = async (id: number) => {
                   color="primary"
                   icon="mdi-pencil"
                   variant="text"
-                  @click="goPath(`/user/edit?id=${item.id}`)"
+                  @click="goPath(`/shop/edit?id=${item.id}`)"
                 ></v-btn>
 
                 <v-btn
                   color="primary"
                   icon="mdi-eye"
                   variant="text"
-                  @click="goPath(`/user/detail?id=${item.id}`)"
+                  @click="goPath(`/shop/detail?id=${item.id}`)"
                 ></v-btn>
 
                 <v-btn
                   color="error"
-                  icon="mdi-delete"
+                  icon="mdi-cancel"
                   variant="text"
-                  @click="onDelete(item.id)"
+                  @click="shopStore.UpdateStatus(item.id, item.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE')"
                 ></v-btn>
               </div>
             </template>

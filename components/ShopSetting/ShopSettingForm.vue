@@ -1,0 +1,120 @@
+<script lang="ts" setup>
+import { UseShopSettingStore } from "@/stores/shopsetting";
+
+const shopSettingStore = UseShopSettingStore();
+const loading = computed(() => shopSettingStore.loading);
+const form = ref();
+const shopIdInput = ref<number | null>(null);
+const loaded = ref(false);
+
+const request = ref({
+  currency: "",
+  vat_rate: 0,
+  auto_reply_msg: "",
+  business_hours: "",
+});
+
+const loadSetting = async () => {
+  if (!shopIdInput.value) return;
+  await shopSettingStore.GetDetailData(shopIdInput.value);
+  const setting = shopSettingStore.response_detail_query_data;
+  if (setting) {
+    request.value.currency = setting.currency;
+    request.value.vat_rate = setting.vat_rate;
+    request.value.auto_reply_msg = setting.auto_reply_msg;
+    request.value.business_hours = setting.business_hours;
+  } else {
+    request.value = { currency: "", vat_rate: 0, auto_reply_msg: "", business_hours: "" };
+  }
+  loaded.value = true;
+};
+
+const submitForm = async () => {
+  if (!shopIdInput.value) return;
+  const { valid } = await form.value.validate();
+  if (!valid) return;
+
+  if (shopSettingStore.exists) {
+    await shopSettingStore.UpdateData(shopIdInput.value, { ...request.value });
+  } else {
+    await shopSettingStore.CreateData({ shop_id: shopIdInput.value, ...request.value });
+    shopSettingStore.exists = true;
+  }
+};
+</script>
+
+<template>
+  <section class="pa-6">
+    <v-card elevation="0" class="pa-6">
+      <GlobalTextTitleLine title="ຄ່າຕັ້ງຮ້ານຄ້າ / Shop Setting" class="mb-8">
+        <template v-if="loaded" #actions>
+          <v-btn color="primary" flat type="submit" form="shop-setting-form" :loading="loading"
+            >ບັນທຶກ</v-btn
+          >
+        </template>
+      </GlobalTextTitleLine>
+
+      <div class="d-flex flex-wrap align-end ga-4" :class="loaded ? 'mb-8' : ''" style="max-width: 360px">
+        <v-text-field
+          v-model.number="shopIdInput"
+          type="number"
+          label="Shop ID"
+          density="compact"
+          variant="outlined"
+          hide-details="auto"
+        ></v-text-field>
+        <v-btn color="primary" :loading="loading" @click="loadSetting">ໂຫລດ</v-btn>
+      </div>
+
+      <v-divider v-if="loaded" class="mb-8"></v-divider>
+
+      <v-form v-if="loaded" id="shop-setting-form" ref="form" @submit.prevent="submitForm">
+        <v-row>
+          <v-col cols="12" md="4">
+            <label class="d-block mb-2">ສະກຸນເງິນ / Currency (3 letters)</label>
+            <v-text-field
+              v-model="request.currency"
+              placeholder="LAK"
+              maxlength="3"
+              density="compact"
+              variant="outlined"
+              hide-details="auto"
+              class="mb-6"
+            ></v-text-field>
+
+            <label class="d-block mb-2">ອັດຕາ VAT / VAT rate</label>
+            <v-text-field
+              v-model.number="request.vat_rate"
+              type="number"
+              step="0.01"
+              density="compact"
+              variant="outlined"
+              hide-details="auto"
+            ></v-text-field>
+          </v-col>
+
+          <v-col cols="12" md="4">
+            <label class="d-block mb-2">ຂໍ້ຄວາມຕອບກັບອັດຕະໂນມັດ / Auto reply message</label>
+            <v-textarea
+              v-model="request.auto_reply_msg"
+              density="compact"
+              variant="outlined"
+              hide-details="auto"
+            ></v-textarea>
+          </v-col>
+
+          <v-col cols="12" md="4">
+            <label class="d-block mb-2">ເວລາເປີດຮ້ານ / Business hours (JSON)</label>
+            <v-textarea
+              v-model="request.business_hours"
+              placeholder='{"mon-fri":"08:00-18:00"}'
+              density="compact"
+              variant="outlined"
+              hide-details="auto"
+            ></v-textarea>
+          </v-col>
+        </v-row>
+      </v-form>
+    </v-card>
+  </section>
+</template>

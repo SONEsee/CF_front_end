@@ -65,8 +65,7 @@
 </template>
 
 <script lang="ts" setup>
-import axios from "@/helpers/axios";
-import { UserModel } from "@/models/";
+import { UserStore } from "@/stores/user";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
@@ -74,99 +73,70 @@ import Swal from "sweetalert2";
 const username = ref(null);
 const password = ref(null);
 const visible = ref(false);
-const loading = ref(false);
 const form = ref();
 const router = useRouter();
+const userStore = UserStore();
+const loading = computed(() => userStore.login_loading);
 
 const goPath = (path: string) => {
   router.push(path);
 };
 
-const DefaultSwalError = (error: any) => {
-  Swal.fire({
-    icon: 'error',
-    title: 'Oops...',
-    text: error.message || 'Something went wrong!',
-  });
-};
-
 const handleLogin = async () => {
   try {
     const { valid } = await form.value.validate();
-    if (valid) {
-      loading.value = true;
-      
-      const res = await axios.post("/api/auth/login", {
-        username: username.value,
-        password: password.value,
-      });
+    if (!valid) return;
 
-     
-      const { success, message, data } = res.data;
-      
-      if (success && data && data.token && data.user) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
+    const result = await userStore.Login({
+      user_name: username.value ?? "",
+      password: password.value ?? "",
+    });
 
-      
-        Swal.fire({
-          icon: 'success',
-          title: 'ສຳເລັດ',
-          text: message || 'ເຂົ້າສູ່ລະບົບສຳເລັດແລ້ວ',
-          timer: 1500,
-          showConfirmButton: false
-        });
-
-        
-        let timerInterval: ReturnType<typeof setInterval>;
-        Swal.fire({
-          title: 'ກຳລັງເຂົ້າສູ່ລະບົບ',
-          html: 'ຈະເຂົ້າສູ່ໜ້າຫຼັກໃນ <b></b> ວິນາທີ.',
-          timer: 3000,
-          timerProgressBar: true,
-          didOpen: () => {
-            Swal.showLoading();
-            const htmlContainer = Swal.getHtmlContainer();
-            if (htmlContainer) {
-              const b = htmlContainer.querySelector('b');
-              if (b) {
-                timerInterval = setInterval(() => {
-                  const timerLeft = Swal.getTimerLeft();
-                  if (timerLeft !== undefined) {
-                    b.textContent = Math.ceil(timerLeft / 1000).toString();
-                  }
-                }, 100);
-              }
+    if (result.success) {
+      let timerInterval: ReturnType<typeof setInterval>;
+      Swal.fire({
+        icon: "success",
+        title: "ສຳເລັດ",
+        html: "ຈະເຂົ້າສູ່ໜ້າຫຼັກໃນ <b></b> ວິນາທີ.",
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+          const htmlContainer = Swal.getHtmlContainer();
+          if (htmlContainer) {
+            const b = htmlContainer.querySelector("b");
+            if (b) {
+              timerInterval = setInterval(() => {
+                const timerLeft = Swal.getTimerLeft();
+                if (timerLeft !== undefined) {
+                  b.textContent = Math.ceil(timerLeft / 1000).toString();
+                }
+              }, 100);
             }
-          },
-          willClose: () => {
-            clearInterval(timerInterval);
-            goPath("/");
           }
-        });
-      } else {
-        throw new Error("ຂໍ້ມູນຕອບກັບບໍ່ຖືກຕ້ອງ");
-      }
+        },
+        willClose: () => {
+          clearInterval(timerInterval);
+          goPath("/home");
+        },
+      });
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "ເຂົ້າສູ່ລະບົບບໍ່ສຳເລັດ",
+        text: result.message || "ຊື່ຜູ້ໃຊ້ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ",
+      });
     }
   } catch (error: any) {
     console.error("Login error:", error);
-    
-    let errorMessage = "ມີຂໍ້ຜິດພາດໃນການເຂົ້າສູ່ລະບົບ";
-    
-    if (error.response) {
-      console.log("Response error data:", error.response.data);
-      errorMessage = error.response.data.message || `ຂໍ້ຜິດພາດ: ${error.response.status}`;
-    } else if (error.message) {
-      errorMessage = error.message;
-    }
-    
+    const errorMessage =
+      error.response?.data?.message || error.message || "ມີຂໍ້ຜິດພາດໃນການເຂົ້າສູ່ລະບົບ";
     Swal.fire({
-      icon: 'error',
-      title: 'ຂໍ້ຜິດພາດ',
+      icon: "error",
+      title: "ຂໍ້ຜິດພາດ",
       text: errorMessage,
     });
-    
-    loading.value = false;
   }
 };
 </script>

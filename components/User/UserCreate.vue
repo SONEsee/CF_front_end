@@ -1,301 +1,131 @@
 <script lang="ts" setup>
-import axios from "@/helpers/axios";
-import notfounfimages from "@/assets/img/404.png";
-const notfoundref = ref(notfounfimages);
-import { AgencyModel } from "@/models/";
+import { UserStore } from "@/stores/user";
 
-const agencyStore = UseAgencyStore();
-const globalStore = UseGlobalStore();
-const title = ref("ເພີ່ມຂໍ້ມູນຕົວແທນ");
-const visible = ref(false);
-const loading = ref(false);
+const userStore = UserStore();
+const title = ref("ເພີ່ມຜູ້ໃຊ້ງານ");
+const loading = computed(() => userStore.loading);
 const form = ref();
-const file = ref();
 
-const request = agencyStore.form_create_data;
-
-
-
-
-
-
-
-const openFile = () => {
-  file.value.click();
-};
-
-const onFileChange = (event: Event) => {
-  console.log(`event`, event);
-  //@ts-ignore
-  const files = event.target.files;
-  let file = files[0];
-  console.log(`file`, file);
-  if (file) {
-    const value = file as File;
-    request.profile_image = value;
-  }
-};
+const request = ref({
+  shop_id: null as number | null,
+  role_id: null as number | null,
+  username: "",
+  password: "",
+  full_name: "",
+  email: "",
+  phone: "",
+});
 
 const submitForm = async () => {
-  try {
-    const { valid } = await form.value.validate();
-    if (valid) {
-      loading.value = true;
-      var formData = new FormData();
-      let allowFileKey = ["profile_image"];
-      for (const [key, value] of Object.entries(request)) {
-        if (allowFileKey.includes(key)) {
-          if (Array.isArray(value)) {
-            //looping for upload
-            const files = value as unknown as File[];
-            if (files) {
-              for (let i = 0; i < files.length; i++) {
-                let file = files[i];
-                formData.append(key, file, file.name);
-              }
-            }
-          } else {
-            let file = (value as File) ?? null;
-            if (file !== null) {
-              formData.append(key, file, file.name);
-            }
-          }
-        } else if (key === "identities") {
-          formData.append("identities", JSON.stringify(value));
-          if (Array.isArray(value)) {
-            for (let i = 0; i < value.length; i++) {
-              const identity = value[i];
-              if (identity.file !== null) {
-                console.log(`iden`, identity.file.type);
-                formData.append(
-                  "identities_files",
-                  identity.file,
-                  `${i}.${identity.file.type.split("/")[1]}`
-                );
-              }
-            }
-          }
-        } else {
-          formData.append(key, value?.toString() ?? "");
-        }
-      }
+  const { valid } = await form.value.validate();
+  if (!valid) return;
 
-      const res = await axios.post("/api/v1/agency/new", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      if (res.status === 200) {
-        const notification = await CallSwal({
-          icon: "success",
-          title: "ສຳເລັດ",
-          text: "ບັນທຶກຂໍ້ມູນສຳເລັດ",
-        });
-        if (notification.isConfirmed) {
-          setTimeout(() => {
-            goPath("/agency");
-          }, 1200);
-        } else {
-          setTimeout(() => {
-            goPath("/agency");
-          }, 1200);
-        }
-      }
-    }
-  } catch (error) {
-    console.error(error);
-  } finally {
-    loading.value = false;
-  }
+  await userStore.CreateData({
+    shop_id: request.value.shop_id,
+    role_id: request.value.role_id as number,
+    username: request.value.username,
+    password: request.value.password,
+    full_name: request.value.full_name,
+    email: request.value.email || undefined,
+    phone: request.value.phone || undefined,
+  });
 };
 </script>
 
 <template>
-  <section>
-    <v-form ref="form" @submit.prevent="submitForm">
-      <v-row>
-        <v-col cols="12">
-          <GlobalTextTitleLine :title="title" />
-        </v-col>
-
-        <v-col cols="12" class="d-flex flex-wrap justify-end">
-          <v-btn color="primary" flat type="submit" :loading="loading"
+  <section class="pa-6">
+    <v-card elevation="0" class="pa-6">
+      <GlobalTextTitleLine :title="title" class="mb-8">
+        <template #actions>
+          <v-btn color="primary" flat type="submit" form="user-create-form" :loading="loading"
             >ບັນທຶກ</v-btn
           >
-        </v-col>
+        </template>
+      </GlobalTextTitleLine>
 
-        <v-col cols="12" class="pt-12">
-          <v-row>
-            <v-col cols="4">
-              <v-row>
-                <v-col cols="12" class="d-flex flex-wrap justify-center">
-                  <v-avatar
-                    size="220"
-                    class="mx-auto"
-                    :image="
-                      request.profile_image === null
-                        ? notfoundref
-                        : GetImageUrl(request.profile_image)
-                    "
-                  >
-                  </v-avatar>
-                </v-col>
+      <v-form id="user-create-form" ref="form" @submit.prevent="submitForm">
+        <v-row>
+          <v-col cols="12" md="4">
+            <label class="d-block mb-2">ຊື່ ແລະ ນາມສະກຸນ / Full name</label>
+            <v-text-field
+              v-model="request.full_name"
+              :rules="[(v: string) => !!v || 'ກະລຸນາປ້ອນຊື່ ແລະ ນາມສະກຸນ']"
+              placeholder="ກະລຸນາປ້ອນຊື່ ແລະ ນາມສະກຸນ"
+              density="compact"
+              variant="outlined"
+              hide-details="auto"
+              class="mb-6"
+            ></v-text-field>
 
-                <v-col cols="12" class="d-flex flex-wrap justify-center">
-                  <v-btn
-                    class="mt-4 mb-7"
-                    width="180px"
-                    height="40px"
-                    color="primary"
-                    flat
-                    prepend-icon="mdi-cloud-upload-outline"
-                    text="ອັບໂຫຼດຮູບພາບ"
-                    @click="openFile"
-                  >
-                  </v-btn>
+            <label class="d-block mb-2">ຊື່ຜູ້ໃຊ້ງານ / Username</label>
+            <v-text-field
+              v-model="request.username"
+              :rules="[(v: string) => !!v || 'ກະລຸນາປ້ອນຊື່ຜູ້ໃຊ້ງານ']"
+              placeholder="ກະລຸນາປ້ອນຊື່ຜູ້ໃຊ້ງານ"
+              density="compact"
+              variant="outlined"
+              hide-details="auto"
+              class="mb-6"
+            ></v-text-field>
 
-                  <input
-                    type="file"
-                    ref="file"
-                    style="display: none"
-                    accept="image/jpg,image/png,image/jpeg"
-                    @change="onFileChange"
-                  />
-                </v-col>
-              </v-row>
-            </v-col>
+            <label class="d-block mb-2">ລະຫັດຜ່ານ / Password</label>
+            <v-text-field
+              v-model="request.password"
+              type="password"
+              :rules="[(v: string) => !!v || 'ກະລຸນາປ້ອນລະຫັດຜ່ານ']"
+              placeholder="ກະລຸນາປ້ອນລະຫັດຜ່ານ"
+              density="compact"
+              variant="outlined"
+              hide-details="auto"
+            ></v-text-field>
+          </v-col>
 
-            <v-col cols="8">
-              <v-row>
-                <v-col cols="12" md="4">
-                  <label>ຊື່ ແລະ ນາມສະກຸນ / Fullname</label>
-                  <v-text-field
-                    @click:append-inner="visible = !visible"
-                    :rules="[(v: string) => !!v || 'ກະລຸນາປ້ອນຊື່ ແລະ ນາມສະກຸນ']"
-                    v-model="request.fullname"
-                    placeholder="ກະລຸນາປ້ອນຊື່ ແລະ ນາມສະກຸນ"
-                    density="compact"
-                    variant="outlined"
-                    hide-details="auto"
-                    class="pb-6"
-                  ></v-text-field>
+          <v-col cols="12" md="4">
+            <label class="d-block mb-2">Role ID</label>
+            <v-text-field
+              v-model.number="request.role_id"
+              type="number"
+              :rules="[(v: number) => !!v || 'ກະລຸນາປ້ອນ Role ID']"
+              placeholder="ກະລຸນາປ້ອນ Role ID"
+              density="compact"
+              variant="outlined"
+              hide-details="auto"
+              class="mb-6"
+            ></v-text-field>
 
-                  <label>ລະຫັດຕົວແທນ / Agency code</label>
-                  <v-text-field
-                    v-model="request.agency_code"
-                    :rules="[(v: string) => !!v || 'ກະລຸນາປ້ອນລະຫັດຕົວແທນ']"
-                    placeholder="ກະລຸນາປ້ອນລະຫັດຕົວແທນ"
-                    density="compact"
-                    hide-details="auto"
-                    variant="outlined"
-                    class="pb-6"
-                  ></v-text-field>
+            <label class="d-block mb-2">Shop ID</label>
+            <v-text-field
+              v-model.number="request.shop_id"
+              type="number"
+              placeholder="ກະລຸນາປ້ອນ Shop ID (ຖ້າມີ)"
+              density="compact"
+              variant="outlined"
+              hide-details="auto"
+            ></v-text-field>
+          </v-col>
 
-                  
-                  <label>ລະຫັດຜ່ານ / Password</label>
-                  <v-text-field
-                    v-model="request.password"
-                    :rules="[(v: string) => !!v || 'ກະລຸນາປ້ອນລະຫັດຜ່ານ']"
-                    placeholder="ກະລຸນາປ້ອນລະຫັດຜ່ານ"
-                    density="compact"
-                    variant="outlined"
-                    hide-details="auto"
-                    class="pb-6"
-                  ></v-text-field>
-                </v-col>
+          <v-col cols="12" md="4">
+            <label class="d-block mb-2">ອີເມວ / Email</label>
+            <v-text-field
+              v-model="request.email"
+              placeholder="ກະລຸນາປ້ອນອີເມວ"
+              density="compact"
+              variant="outlined"
+              hide-details="auto"
+              class="mb-6"
+            ></v-text-field>
 
-                <v-col cols="4">
-                  <label>ຊື່ຫຼິ້ນ / Nickname</label>
-                  <v-text-field
-                    v-model="request.nick_name"
-                    :rules="[(v: string) => !!v || 'ກະລຸນາປ້ອນຊື່ຫຼິນ']"
-                    placeholder="ກະລຸນາປ້ອນຊື່ຫຼິນ"
-                    density="compact"
-                    variant="outlined"
-                    hide-details="auto"
-                    class="pb-6"
-                  ></v-text-field>
-
-                  <label>ສິດການເຂົ້າໃຊ້ງານ / Role access</label>
-                  <v-select
-                    v-model="request.agency_type"
-                    :rules="[(v: string) => !!v || 'ກະລຸນາປ້ອນສິດການເຂົ້ານຳໃຊ້']"
-                    placeholder="ກະລຸນາປ້ອນສິດການເຂົ້ານຳໃຊ້"
-                    density="compact"
-                    variant="outlined"
-                    hide-details="auto"
-                    class="pb-6"
-                    :items="GetAgencyType()"
-                  ></v-select>
-
-                  
-
-                  <label>ຢືນຢັນລະຫັດຜ່ານ / Confirm password</label>
-                  <v-text-field
-                    v-model="request.confirm_password"
-                    hide-details="auto"
-                    :rules="[(v: string) => !!v || 'ກະລຸນາປ້ອນລະຫັດຜ່ານ']"
-                    placeholder="ກະລຸນາປ້ອນລະຫັດຜ່ານ"
-                    density="compact"
-                    variant="outlined"
-                    class="pb-6"
-                  ></v-text-field>
-                </v-col>
-
-                <v-col cols="4">
-                  <label>ເບີໂທລະສັບ / Phone number</label>
-                  <v-text-field
-                    v-model="request.phone_number"
-                    hide-details="auto"
-                    :rules="[(v: string) => !!v || 'ກະລຸນາປ້ອນເບີໂທລະສັບ']"
-                    placeholder="ກະລຸນາປ້ອນເບີໂທລະສັບ"
-                    density="compact"
-                    variant="outlined"
-                    class="pb-6"
-                  ></v-text-field>
-
-                
-                  <label>ຊື້ຜູ້ໃຊ້ງານ / Username</label>
-                  <v-text-field
-                    v-model="request.username"
-                    :rules="[(v: string) => !!v || 'ກະລຸນາປ້ອນຊື່ຜູ້ໃຊ້ງານ']"
-                    placeholder="ກະລຸນາປ້ອນຊື່ຜູ້ໃຊ້ງານ"
-                    density="compact"
-                    variant="outlined"
-                    hide-details="auto"
-                    class="pb-6"
-                  ></v-text-field>
-
-                  <label>ສະຖານະ / Status</label>
-                  <v-select
-                    v-model="request.status"
-                    :rules="[(v: string) => !!v || 'ກະລຸນາເລືອກສິດເຂົ້ານຳໃຊ້']"
-                    placeholder="ກາລຸນາເລືອກສິດເຂົ້ານຳໃຊ້"
-                    density="compact"
-                    :items="GetDefaultStatus()"
-                    variant="outlined"
-                    hide-details="auto"
-                    class="pb-6"
-                  ></v-select>
-                </v-col>
-              </v-row>
-            </v-col>
-          </v-row>
-        </v-col>
-
-        <v-col cols="12">
-          <v-row>
-            <v-col cols="6"></v-col>
-            <v-col cols="6">
-              <v-row>
-               
-                
-              </v-row>
-            </v-col>
-          </v-row>
-        </v-col>
-      </v-row>
-    </v-form>
+            <label class="d-block mb-2">ເບີໂທລະສັບ / Phone</label>
+            <v-text-field
+              v-model="request.phone"
+              placeholder="ກະລຸນາປ້ອນເບີໂທລະສັບ"
+              density="compact"
+              variant="outlined"
+              hide-details="auto"
+            ></v-text-field>
+          </v-col>
+        </v-row>
+      </v-form>
+    </v-card>
   </section>
 </template>

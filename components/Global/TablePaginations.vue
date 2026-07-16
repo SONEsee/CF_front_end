@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { useDisplay } from "vuetify";
+
 const props = defineProps({
   page: {
     type: Number,
@@ -18,11 +20,13 @@ const props = defineProps({
     default: 1,
   },
 });
+
+const display = useDisplay();
 </script>
 
 <template>
-  <div class="d-flex flex-wrap justify-space-between pt-2">
-    <div style="width: 250px">
+  <div class="d-flex flex-column flex-sm-row flex-wrap justify-space-between align-stretch align-sm-end ga-4 pt-2">
+    <div class="w-100" style="max-width: 250px">
       <label> ຈຳນວນລາຍການທີ່ສະແດງ</label>
       <v-select
         variant="outlined"
@@ -33,10 +37,10 @@ const props = defineProps({
       ></v-select>
     </div>
 
-    <div>
+    <div class="d-flex justify-center justify-sm-end">
       <v-pagination
         class="text-black"
-        :total-visible="8"
+        :total-visible="display.smAndDown.value ? 4 : 8"
         :length="totalpage ?? 1"
         :model-value="page"
         @update:model-value="$emit('onPagechange', $event)"
