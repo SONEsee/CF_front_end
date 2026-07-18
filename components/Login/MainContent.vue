@@ -8,8 +8,8 @@
         <v-row>
           <v-col cols="12">
             <div class="text-center">
-              <v-avatar color="" size="150" >
-                <img src="../../assets/img/Logo.png" alt="" width="150">
+              <v-avatar color="" size="150" border>
+                <img src="../../assets/img/WhatsApp_Image_2026-07-14_at_16.23.19-removebg-preview.png" alt="" width="150">
               </v-avatar>
             </div>
             <h3 class="text-center">ເຂົ້າສູ່ລະບົບ ບໍລິສັດ ວີວີທີເອັສ ໂຊກໄຊຈະເລີນ ກໍ່ສ້າງ ຈຳກັດຜູ້ດຽວ</h3>
@@ -67,7 +67,7 @@
 <script lang="ts" setup>
 import { UserStore } from "@/stores/user";
 import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import Swal from "sweetalert2";
 
 const username = ref(null);
@@ -75,8 +75,16 @@ const password = ref(null);
 const visible = ref(false);
 const form = ref();
 const router = useRouter();
+const route = useRoute();
 const userStore = UserStore();
 const loading = computed(() => userStore.login_loading);
+
+const redirectPath = computed(() => {
+  const redirect = route.query.redirect;
+  const path = Array.isArray(redirect) ? redirect[0] : redirect;
+  // ອະນຸຍາດສະເພາະ path ພາຍໃນເວັບ (ຂຶ້ນຕົ້ນດ້ວຍ "/" ດຽວ) ເພື່ອປ້ອງກັນ open-redirect
+  return path && path.startsWith("/") && !path.startsWith("//") ? path : "/home";
+});
 
 const goPath = (path: string) => {
   router.push(path);
@@ -118,7 +126,7 @@ const handleLogin = async () => {
         },
         willClose: () => {
           clearInterval(timerInterval);
-          goPath("/home");
+          goPath(redirectPath.value);
         },
       });
     } else {

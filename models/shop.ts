@@ -3,6 +3,7 @@ export interface ShopRequestBody {
   owner_user_id?: number | null;
   phone?: string;
   timezone?: string;
+  image_url?: string;
 }
 
 export interface ShopPatchRequest {
@@ -10,6 +11,7 @@ export interface ShopPatchRequest {
   owner_user_id?: number | null;
   phone?: string;
   timezone?: string;
+  image_url?: string;
 }
 
 export interface ShopStatusRequest {
@@ -23,6 +25,7 @@ export interface Shop {
   phone: string;
   status: string;
   timezone: string;
+  image_url: string | null;
   created_at: string;
   updated_at: string;
 }

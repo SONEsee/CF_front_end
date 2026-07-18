@@ -2,6 +2,7 @@
 import { UseMainMenuStore } from "@/stores/mainmenu";
 
 const store = UseMainMenuStore();
+const permission = UsePagePermission();
 const loading = computed(() => store.loading);
 const form = ref();
 
@@ -28,7 +29,7 @@ const submitForm = async () => {
     <v-card elevation="0" class="pa-6">
       
       <GlobalTextTitleLine title="ເພີ່ມເມນູຫຼັກ" class="mb-8">
-        <template #actions>
+        <template v-if="permission.can_create" #actions>
           <v-btn
             color="primary"
             flat
@@ -40,7 +41,9 @@ const submitForm = async () => {
         </template>
       </GlobalTextTitleLine>
 
-      <v-form id="main-menu-create-form" ref="form" @submit.prevent="submitForm">
+      <GlobalPermissionDenied v-if="!permission.can_create" />
+
+      <v-form v-else id="main-menu-create-form" ref="form" @submit.prevent="submitForm">
         <v-row>
           <v-col cols="12" md="4">
             <label class="d-block mb-2">Module ID</label>

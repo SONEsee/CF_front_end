@@ -3,6 +3,31 @@ import swal from "sweetalert2";
 import { AxiosError } from "axios";
 import type { SweetAlertOptions } from "sweetalert2";
 import { DefaultResponseModel } from "@/models/";
+import { UsePermissionGuardStore } from "@/stores/permissionGuard";
+
+// ໃຊ້ຜູກປຸ່ມ create/edit/delete ຂອງໜ້າ CRUD ໃສ່ສິດອະນຸຍາດ (permissions) ຂອງ role ປັດຈຸບັນ
+// submenuId ຖືກອ່ານຈາກ route.meta.submenuId ທີ່ກຳນົດຜ່ານ definePageMeta() ຂອງແຕ່ລະ page
+// (ບໍ່ຕ້ອງພິມ path ຊ້ຳໃນແຕ່ລະ component ອີກ)
+export const UsePagePermission = () => {
+  const guard = UsePermissionGuardStore();
+  const route = useRoute();
+  if (!guard.loaded && !guard.loading) {
+    guard.Load();
+  }
+  return computed(() => guard.can(route.meta.submenuId));
+};
+
+// ດຶງ id ຂອງຜູ້ໃຊ້ທີ່ login ຢູ່ໃນປັດຈຸບັນ (ຈາກ localStorage) ໃຊ້ຝັງ user_id ຫຼັງບ້ານ
+// ໂດຍບໍ່ໃຫ້ຜູ້ໃຊ້ເຫັນ ຫຼື ປ້ອນເອງ
+export const GetCurrentUserId = (): number | null => {
+  const raw = localStorage.getItem("user");
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw)?.id ?? null;
+  } catch {
+    return null;
+  }
+};
 
 export const UseGetFormatDatePicker = (date: any) => {
   if (date) {

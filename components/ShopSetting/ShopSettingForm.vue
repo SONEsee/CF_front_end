@@ -2,10 +2,16 @@
 import { UseShopSettingStore } from "@/stores/shopsetting";
 
 const shopSettingStore = UseShopSettingStore();
+const permission = UsePagePermission();
 const loading = computed(() => shopSettingStore.loading);
 const form = ref();
 const shopIdInput = ref<number | null>(null);
 const loaded = ref(false);
+
+// upsert: create-or-update, so the needed permission depends on whether the row already exists
+const canSubmit = computed(() =>
+  shopSettingStore.exists ? permission.value.can_update : permission.value.can_create
+);
 
 const request = ref({
   currency: "",
@@ -47,7 +53,7 @@ const submitForm = async () => {
   <section class="pa-6">
     <v-card elevation="0" class="pa-6">
       <GlobalTextTitleLine title="ຄ່າຕັ້ງຮ້ານຄ້າ / Shop Setting" class="mb-8">
-        <template v-if="loaded" #actions>
+        <template v-if="loaded && canSubmit" #actions>
           <v-btn color="primary" flat type="submit" form="shop-setting-form" :loading="loading"
             >ບັນທຶກ</v-btn
           >
@@ -68,7 +74,9 @@ const submitForm = async () => {
 
       <v-divider v-if="loaded" class="mb-8"></v-divider>
 
-      <v-form v-if="loaded" id="shop-setting-form" ref="form" @submit.prevent="submitForm">
+      <GlobalPermissionDenied v-if="loaded && !canSubmit" />
+
+      <v-form v-else-if="loaded" id="shop-setting-form" ref="form" @submit.prevent="submitForm">
         <v-row>
           <v-col cols="12" md="4">
             <label class="d-block mb-2">ສະກຸນເງິນ / Currency (3 letters)</label>

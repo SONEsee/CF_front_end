@@ -5,6 +5,7 @@ import { UseShopBankAccountStore } from "@/stores/shopbankaccount";
 const route = useRoute();
 const id = route.query.id as string;
 const store = UseShopBankAccountStore();
+const permission = UsePagePermission();
 const loading = computed(() => store.loading);
 const form = ref();
 
@@ -40,14 +41,16 @@ const submitForm = async () => {
   <section class="pa-6">
     <v-card elevation="0" class="pa-6">
       <GlobalTextTitleLine title="ແກ້ໄຂບັນຊີທະນາຄານ" class="mb-8">
-        <template #actions>
+        <template v-if="permission.can_update" #actions>
           <v-btn color="primary" flat type="submit" form="shop-bank-account-edit-form" :loading="loading"
             >ບັນທຶກ</v-btn
           >
         </template>
       </GlobalTextTitleLine>
 
-      <v-form id="shop-bank-account-edit-form" ref="form" @submit.prevent="submitForm">
+      <GlobalPermissionDenied v-if="!permission.can_update" />
+
+      <v-form v-else id="shop-bank-account-edit-form" ref="form" @submit.prevent="submitForm">
         <v-row>
           <v-col cols="12" md="4">
             <label class="d-block mb-2">ຊື່ທະນາຄານ / Bank name</label>

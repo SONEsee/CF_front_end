@@ -1,4 +1,8 @@
 <script setup lang="ts">
+definePageMeta({
+  middleware: ["auth"],
+});
+
 import { useRoute } from "vue-router";
 import { onMounted } from "vue";
 import { UseCategoryStore } from "~/stores/category";

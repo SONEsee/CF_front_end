@@ -5,6 +5,7 @@ import { UsePermissionStore } from "@/stores/permission";
 
 const router = useRouter();
 const store = UsePermissionStore();
+const permission = UsePagePermission();
 
 const response = computed(() => store.response_query_data);
 
@@ -82,7 +83,7 @@ const onsetinput = async (input: string | null) => {
             </div>
           </div>
 
-          <div class="d-flex flex-wrap align-center">
+          <div v-if="permission.can_create" class="d-flex flex-wrap align-center">
             <v-btn color="primary" elevation="0" @click="goPath('/permission/create')">
               <v-icon class="mr-2"> mdi-plus</v-icon>
               ເພີ່ມສິດອະນຸຍາດ
@@ -115,6 +116,7 @@ const onsetinput = async (input: string | null) => {
 
             <template v-slot:item.actions="{ item }">
               <v-btn
+                v-if="permission.can_update"
                 color="primary"
                 icon="mdi-pencil"
                 variant="text"
@@ -123,6 +125,7 @@ const onsetinput = async (input: string | null) => {
               ></v-btn>
 
               <v-btn
+                v-if="permission.can_delete"
                 color="error"
                 icon="mdi-delete"
                 variant="text"

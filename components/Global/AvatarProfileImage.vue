@@ -13,6 +13,11 @@ const props = defineProps({
     required: false,
     default: "N/A",
   },
+  size: {
+    type: [String, Number],
+    required: false,
+    default: 220,
+  },
 });
 
 const imageLink = computed(() => props.image_url ?? "N/A");
@@ -38,7 +43,7 @@ watch(
 
 <template>
   <v-avatar
-    size="220"
+    :size="size"
     class="mx-auto d-flex align-center"
     color="grey lighten-2"
   >

@@ -20,6 +20,7 @@ onMounted(() => {
       </v-col>
 
       <v-col cols="12" md="6">
+        <GlobalAvatarProfileImage :image_url="shop?.image_url ?? undefined" size="80" class="mb-4" />
         <p><strong>ຊື່ຮ້ານຄ້າ:</strong> {{ shop?.shop_name }}</p>
         <p><strong>ເບີໂທລະສັບ:</strong> {{ shop?.phone }}</p>
         <p><strong>Owner User ID:</strong> {{ shop?.owner_user_id ?? "-" }}</p>

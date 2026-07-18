@@ -5,6 +5,7 @@ import { UserStore } from '@/stores/user';
 
 const router = useRouter();
 const userStore = UserStore();
+const permission = UsePagePermission();
 
 const response = computed(() => {
   return userStore.response_query_data;
@@ -91,7 +92,7 @@ const onDelete = async (id: number) => {
             </div>
           </div>
 
-          <div class="d-flex">
+          <div v-if="permission.can_create" class="d-flex">
             <v-btn
               class="w-100 w-md-auto"
               color="primary"
@@ -127,6 +128,7 @@ const onDelete = async (id: number) => {
             <template v-slot:item.actions="{ item }">
               <div class="d-flex flex-wrap ga-1">
                 <v-btn
+                  v-if="permission.can_update"
                   color="primary"
                   icon="mdi-pencil"
                   variant="text"
@@ -134,6 +136,7 @@ const onDelete = async (id: number) => {
                 ></v-btn>
 
                 <v-btn
+                  v-if="permission.can_view"
                   color="primary"
                   icon="mdi-eye"
                   variant="text"
@@ -141,6 +144,7 @@ const onDelete = async (id: number) => {
                 ></v-btn>
 
                 <v-btn
+                  v-if="permission.can_delete"
                   color="error"
                   icon="mdi-delete"
                   variant="text"

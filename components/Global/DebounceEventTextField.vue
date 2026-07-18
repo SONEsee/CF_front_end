@@ -13,11 +13,12 @@ const onDebounceInput = useDebounceFn((value: string) => {
 
 <template>
   <section>
-    <label v-if="label">{{ label }}</label>
+    <label v-if="label" class="d-block mb-2">{{ label }}</label>
     <v-text-field
       variant="outlined"
       hide-details
       density="compact"
+      clearable
       :model-value="input"
       @update:model-value="onDebounceInput"
     ></v-text-field>

@@ -2,6 +2,7 @@
 import { UseRoleStore } from "@/stores/role";
 
 const store = UseRoleStore();
+const permission = UsePagePermission();
 const loading = computed(() => store.loading);
 const form = ref();
 
