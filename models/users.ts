@@ -27,6 +27,7 @@ export interface UserRequestBody {
   full_name: string;
   email?: string;
   phone?: string;
+  profile_image?: string;
 }
 
 export interface UserRequestBodyPatch {
@@ -37,6 +38,7 @@ export interface UserRequestBodyPatch {
   full_name?: string | null;
   email?: string | null;
   phone?: string | null;
+  profile_image?: string;
 }
 
 export interface User {
@@ -47,6 +49,7 @@ export interface User {
   full_name: string;
   email: string;
   phone: string;
+  profile_image: string | null;
   is_active: boolean;
   last_login_at: string | null;
   created_at: string;

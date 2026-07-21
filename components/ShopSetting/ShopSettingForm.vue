@@ -1,12 +1,36 @@
 <script lang="ts" setup>
 import { UseShopSettingStore } from "@/stores/shopsetting";
+import { UserStore } from "@/stores/user";
 
 const shopSettingStore = UseShopSettingStore();
+const userStore = UserStore();
 const permission = UsePagePermission();
 const loading = computed(() => shopSettingStore.loading);
 const form = ref();
 const shopIdInput = ref<number | null>(null);
 const loaded = ref(false);
+
+// ດຶງ shop_id ຂອງຮ້ານທີ່ຜູ້ໃຊ້ທີ່ login ຢູ່ສັງກັດ ມາໃສ່ໃຫ້ອັດຕະໂນມັດ (ບໍ່ໃຫ້ຕ້ອງພິມເອງ)
+onMounted(async () => {
+  const currentUserId = GetCurrentUserId();
+  if (!currentUserId) return;
+  await userStore.GetDetailData(currentUserId);
+  const shopId = userStore.response_detail_query_data?.shop_id;
+  if (shopId) {
+    shopIdInput.value = shopId;
+    await loadSetting();
+  }
+});
+
+const businessHoursRule = (v: string) => {
+  if (!v) return true;
+  try {
+    JSON.parse(v);
+    return true;
+  } catch {
+    return "ຮູບແບບ JSON ບໍ່ຖືກຕ້ອງ";
+  }
+};
 
 // upsert: create-or-update, so the needed permission depends on whether the row already exists
 const canSubmit = computed(() =>
@@ -95,6 +119,9 @@ const submitForm = async () => {
               v-model.number="request.vat_rate"
               type="number"
               step="0.01"
+              min="0"
+              max="999.99"
+              :rules="[(v: number) => v <= 999.99 || 'ຄ່າສູງສຸດແມ່ນ 999.99']"
               density="compact"
               variant="outlined"
               hide-details="auto"
@@ -116,6 +143,7 @@ const submitForm = async () => {
             <v-textarea
               v-model="request.business_hours"
               placeholder='{"mon-fri":"08:00-18:00"}'
+              :rules="[businessHoursRule]"
               density="compact"
               variant="outlined"
               hide-details="auto"

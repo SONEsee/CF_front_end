@@ -14,9 +14,29 @@ export const UseRoleStore = defineStore("role", {
         page: 1,
         loading: false,
       },
+      role_options: [] as RoleModel.RoleOption[],
+      role_options_loading: false,
+      role_options_loaded: false,
     };
   },
   actions: {
+    // ດຶງ role ທັງໝົດແບບບໍ່ມີ pagination — ໃຊ້ສຳລັບ dropdown/autocomplete (ເຊັ່ນ UserCreate)
+    async GetRoleOptions(force = false) {
+      if (this.role_options_loaded && !force) return;
+      this.role_options_loading = true;
+      try {
+        const res = await axios.get<RoleModel.RoleOptionsResponse>("/api/v1/role/role-options");
+        if (res.status === 200) {
+          this.role_options = res.data.items ?? [];
+          this.role_options_loaded = true;
+        }
+      } catch (error) {
+        console.error("Error fetching role options:", error);
+      } finally {
+        this.role_options_loading = false;
+      }
+    },
+
     async GetListData() {
       this.loading = true;
       this.request_query_data.loading = true;

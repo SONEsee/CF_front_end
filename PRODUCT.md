@@ -10,7 +10,7 @@ Shop administrators and staff managing a multi-tenant shop-management backend (g
 
 ## Product Purpose
 
-CF_onLy is the Nuxt3 + Vuetify admin frontend for the go-echo-template shop-management API. It provides CRUD screens (list, create, edit, detail) for backend entities — currently Login, Users, Shop, ShopSetting, ShopBankAccount, Role, Permission, MainMenu, SubMenu — so shop staff can configure and operate their shop without touching the API directly.
+Live Commerce is the Nuxt3 + Vuetify admin frontend for the go-echo-template shop-management API. It provides CRUD screens (list, create, edit, detail) for backend entities — currently Login, Users, Shop, ShopSetting, ShopBankAccount, Role, Permission, MainMenu, SubMenu — so shop staff can configure and operate their shop without touching the API directly.
 
 ## Brand Personality
 

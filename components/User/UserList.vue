@@ -6,6 +6,8 @@ import { UserStore } from '@/stores/user';
 const router = useRouter();
 const userStore = UserStore();
 const permission = UsePagePermission();
+const { shopName } = UseShopNameResolver();
+const { roleName } = UseRoleNameResolver();
 
 const response = computed(() => {
   return userStore.response_query_data;
@@ -29,9 +31,12 @@ async function onPageChange(page: number) {
 
 const headers = ref([
   { title: "ລຳດັບ", key: "no", sortable: false },
+  { title: "ຮູບ", key: "profile_image", sortable: false },
   { title: "ຊື່ຜູ້ໃຊ້ງານ", key: "username", sortable: false },
   { title: "ອີເມວ", key: "email", sortable: false },
   { title: "ຊື່ແທ້", key: "full_name", sortable: false },
+  { title: "ຮ້ານຄ້າ", key: "shop_id", sortable: false },
+  { title: "ສິດ", key: "role_id", sortable: false },
   { title: "ສະຖານະ", key: "status", sortable: false },
   { title: "Actions", key: "actions", sortable: false },
 ]);
@@ -45,44 +50,43 @@ const goPath = (path: string) => {
 };
 
 const onsetinput = async (input: string | null) => {
-  if (request !== null) {
-    request.q = input ?? null;
-    await userStore.GetListData();
-  }
+  request.q = input ?? null;
+  request.page = 1;
+  await userStore.GetListData();
 };
 
 const onDelete = async (id: number) => {
   await userStore.DeleteData(id);
 };
 </script>
+
 <template>
-  <div class="pa-6">
+  <div class="pa-2">
     <v-card elevation="0" tile width="100%" min-height="95vh" class="pa-6">
       <v-row>
         <v-col cols="12">
           <GlobalTextTitleLine
             :title="`ໜ້າຈັດການຜູ້ໃຊ້ງານ / Manage User (${formatNumber(
-              response?.pagination?.total_page ?? 0
+              response?.pagination?.total_items ?? 0
             )})`"
           />
         </v-col>
 
         <v-col
           cols="12"
-          class="d-flex flex-column flex-md-row flex-wrap justify-space-between align-stretch align-md-center ga-4"
+          class="d-flex flex-wrap justify-space-between align-center"
         >
-          <div class="d-flex flex-column flex-sm-row flex-wrap ga-2">
-            <div class="w-100" style="max-width: 280px">
+          <div class="d-flex flex-wrap">
+            <div style="width: 280px">
               <GlobalDebounceEventTextField
                 :input="request.q"
                 :label="'ຄົ້ນຫາ'"
                 @setinput="onsetinput"
               />
             </div>
-
-            <div class="d-flex align-end">
+            <div class="ml-4 pt-6">
               <v-btn
-                class="w-100 w-sm-auto"
+                class="mt-2"
                 color="primary"
                 flat
                 :loading="request.loading"
@@ -92,9 +96,8 @@ const onDelete = async (id: number) => {
             </div>
           </div>
 
-          <div v-if="permission.can_create" class="d-flex">
+          <div v-if="permission.can_create" class="d-flex flex-wrap align-center">
             <v-btn
-              class="w-100 w-md-auto"
               color="primary"
               elevation="0"
               @click="goPath('/user/create')"
@@ -116,6 +119,18 @@ const onDelete = async (id: number) => {
               {{ index + 1 }}
             </template>
 
+            <template v-slot:item.profile_image="{ item }">
+              <GlobalAvatarProfileImage :image_url="item.profile_image ?? undefined" size="40" />
+            </template>
+
+            <template v-slot:item.shop_id="{ item }">
+              {{ shopName(item.shop_id) }}
+            </template>
+
+            <template v-slot:item.role_id="{ item }">
+              {{ roleName(item.role_id) }}
+            </template>
+
             <template v-slot:item.status="{ item }">
               <span v-if="item.is_active === true">
                 <v-chip color="info">ເປີດໃຊ້ງານ</v-chip>
@@ -132,6 +147,7 @@ const onDelete = async (id: number) => {
                   color="primary"
                   icon="mdi-pencil"
                   variant="text"
+                  size="small"
                   @click="goPath(`/user/edit?id=${item.id}`)"
                 ></v-btn>
 
@@ -140,6 +156,7 @@ const onDelete = async (id: number) => {
                   color="primary"
                   icon="mdi-eye"
                   variant="text"
+                  size="small"
                   @click="goPath(`/user/detail?id=${item.id}`)"
                 ></v-btn>
 
@@ -148,6 +165,7 @@ const onDelete = async (id: number) => {
                   color="error"
                   icon="mdi-delete"
                   variant="text"
+                  size="small"
                   @click="onDelete(item.id)"
                 ></v-btn>
               </div>
@@ -157,7 +175,7 @@ const onDelete = async (id: number) => {
               <GlobalTablePaginations
                 :page="request.page"
                 :limit="request.limit"
-                :totalpage="response?.pagination?.total_items ?? 1"
+                :totalpage="response?.pagination?.total_page ?? 1"
                 @onSelectionChange="onSelectionChange"
                 @onPagechange="onPageChange"
               />

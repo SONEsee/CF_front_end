@@ -18,8 +18,6 @@ export interface Role {
   created_at: string;
 }
 
-// NOTE: total_page/total_items keys are swapped due to a backend bug in
-// presenters.ResponseSuccessListData (see models/shop.ts for details).
 export interface Pagination {
   current_page: number;
   current_page_total_item: number;
@@ -41,4 +39,17 @@ export interface RoleDetailResponse {
   status: number;
   message: string;
   items: Role[];
+}
+
+export interface RoleOption {
+  id: number;
+  role_name: string;
+}
+
+// /api/v1/role/role-options — ບໍ່ມີ pagination, ໃຊ້ສຳລັບ dropdown/autocomplete
+export interface RoleOptionsResponse {
+  timestamp: string;
+  status: number;
+  message: string;
+  items: RoleOption[];
 }

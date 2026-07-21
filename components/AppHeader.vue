@@ -4,7 +4,7 @@
       <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
     </template>
 
-    <v-app-bar-title>CF_onLy</v-app-bar-title>
+    <v-app-bar-title>Live Commerce</v-app-bar-title>
     <v-menu min-width="200px" rounded>
       <template v-slot:activator="{ props }">
         <v-btn icon v-bind="props">

@@ -24,8 +24,6 @@ export interface ShopBankAccount {
   is_active: boolean;
 }
 
-// NOTE: total_page/total_items keys are swapped due to a backend bug in
-// presenters.ResponseSuccessListData (see models/shop.ts for details).
 export interface Pagination {
   current_page: number;
   current_page_total_item: number;

@@ -14,9 +14,30 @@ export const UseShopStore = defineStore("shop", {
         page: 1,
         loading: false,
       },
+      shop_options: [] as ShopModel.ShopOption[],
+      shop_options_loading: false,
+      shop_options_loaded: false,
     };
   },
   actions: {
+    // ດຶງ shop ທັງໝົດແບບບໍ່ມີ pagination — ໃຊ້ສຳລັບ dropdown/autocomplete (ເຊັ່ນ RoleCreate)
+    // ແຍກ state/loading ອອກຈາກ GetListData ໂດຍສະເພາະ ບໍ່ໃຫ້ໄປແກ້ pagination state ຂອງໜ້າ Shop list
+    async GetShopOptions(force = false) {
+      if (this.shop_options_loaded && !force) return;
+      this.shop_options_loading = true;
+      try {
+        const res = await axios.get<ShopModel.ShopOptionsResponse>("/api/v1/shop/shop-options");
+        if (res.status === 200) {
+          this.shop_options = res.data.items ?? [];
+          this.shop_options_loaded = true;
+        }
+      } catch (error) {
+        console.error("Error fetching shop options:", error);
+      } finally {
+        this.shop_options_loading = false;
+      }
+    },
+
     async GetListData() {
       this.loading = true;
       this.request_query_data.loading = true;

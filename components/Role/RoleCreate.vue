@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { UseRoleStore } from "@/stores/role";
-
+const shopStore = UseShopStore();
 const store = UseRoleStore();
 const permission = UsePagePermission();
 const loading = computed(() => store.loading);
@@ -12,6 +12,8 @@ const request = ref({
   description: "",
 });
 
+
+const shopOptionsLoading = computed(() => shopStore.shop_options_loading);
 const submitForm = async () => {
   const { valid } = await form.value.validate();
   if (!valid) return;
@@ -22,6 +24,9 @@ const submitForm = async () => {
     description: request.value.description || undefined,
   });
 };
+onMounted(() => {
+  shopStore.GetShopOptions();
+});
 </script>
 
 <template>
@@ -49,14 +54,18 @@ const submitForm = async () => {
             ></v-text-field>
 
             <label class="d-block mb-2">Shop ID</label>
-            <v-text-field
+            <v-autocomplete
+              :items="shopStore.shop_options"
+              :loading="shopOptionsLoading"
               v-model.number="request.shop_id"
-              type="number"
-              placeholder="ກະລຸນາປ້ອນ Shop ID (ຖ້າມີ)"
+              item-title="shop_name"
+              item-value="id"
+              clearable
+              placeholder="ກະລຸນາເລືອກ Shop ID (ຖ້າມີ)"
               density="compact"
               variant="outlined"
               hide-details="auto"
-            ></v-text-field>
+            ></v-autocomplete>
           </v-col>
 
           <v-col cols="12" md="6">

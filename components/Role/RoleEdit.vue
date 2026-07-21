@@ -5,6 +5,7 @@ import { UseRoleStore } from "@/stores/role";
 const route = useRoute();
 const id = route.query.id as string;
 const store = UseRoleStore();
+const shopStore = UseShopStore();
 const permission = UsePagePermission();
 const loading = computed(() => store.loading);
 const form = ref();
@@ -15,7 +16,10 @@ const request = ref({
   description: "",
 });
 
+const shopOptionsLoading = computed(() => shopStore.shop_options_loading);
+
 onMounted(async () => {
+  shopStore.GetShopOptions();
   await store.GetDetailData(id);
   const role = store.response_detail_query_data;
   if (role) {
@@ -60,13 +64,18 @@ const submitForm = async () => {
             ></v-text-field>
 
             <label class="d-block mb-2">Shop ID</label>
-            <v-text-field
+            <v-autocomplete
+              :items="shopStore.shop_options"
+              :loading="shopOptionsLoading"
               v-model.number="request.shop_id"
-              type="number"
+              item-title="shop_name"
+              item-value="id"
+              clearable
+              placeholder="ກະລຸນາເລືອກ Shop ID (ຖ້າມີ)"
               density="compact"
               variant="outlined"
               hide-details="auto"
-            ></v-text-field>
+            ></v-autocomplete>
           </v-col>
 
           <v-col cols="12" md="6">
