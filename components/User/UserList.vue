@@ -5,7 +5,7 @@ import { UserStore } from '@/stores/user';
 
 const router = useRouter();
 const userStore = UserStore();
-const permission = UsePagePermission();
+const permission = UsePagePermission();      
 
 // ຖ້າ profile_image ເປັນ path relative (ເຊັ່ນ /uploads/profile/xxx.jpg)
 // ຕ້ອງຕໍ່ກັບ base URL ຂອງ backend (ບໍ່ແມ່ນ frontend origin)
