@@ -133,10 +133,11 @@ const onDelete = async (id: number) => {
 
             <template v-slot:item.status="{ item }">
               <span v-if="item.is_active === true">
-                <v-chip color="info">ເປີດໃຊ້ງານ</v-chip>
+                <v-chip color="info" size="small">ເປີດໃຊ້ງານ</v-chip>
+               
               </span>
               <span v-else>
-                <v-chip color="error">ປິດໃຊ້ງານ</v-chip>
+                <v-chip color="error" size="small">ປິດໃຊ້ງານ</v-chip>
               </span>
             </template>
 
