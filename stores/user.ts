@@ -23,7 +23,7 @@ export const UserStore = defineStore("user", {
       try {
         const res = await axios.post<UserModel.UserLoginResponse>(
           "/api/v1/auth/login",
-          payload
+          payload,
         );
 
         if (res.data.status === 1) {
@@ -51,7 +51,7 @@ export const UserStore = defineStore("user", {
               limit: this.request_query_data.limit,
               q: this.request_query_data.q,
             },
-          }
+          },
         );
         if (res.status === 200) {
           this.response_query_data = res.data.items;
@@ -69,7 +69,7 @@ export const UserStore = defineStore("user", {
       try {
         const res = await axios.get<UserModel.UserDetailResponse>(
           "/api/v1/users/getData",
-          { params: { id } }
+          { params: { id } },
         );
         if (res.status === 200) {
           this.response_detail_query_data = res.data.items[0] ?? null;
@@ -81,10 +81,12 @@ export const UserStore = defineStore("user", {
       }
     },
 
-    async CreateData(payload: UserModel.UserRequestBody) {
+    async CreateData(payload: FormData) {
       this.loading = true;
       try {
-        const res = await axios.post("/api/v1/users/create", payload);
+        const res = await axios.post("/api/v1/users/create", payload, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
         if (res.status === 200) {
           await CallSwal({
             icon: "success",
@@ -109,10 +111,16 @@ export const UserStore = defineStore("user", {
       }
     },
 
-    async UpdateData(id: string | number, payload: UserModel.UserRequestBodyPatch) {
+    async UpdateData(
+      id: string | number,
+      payload: UserModel.UserRequestBodyPatch,
+    ) {
       this.loading = true;
       try {
-        const res = await axios.patch(`/api/v1/users/user-update/${id}`, payload);
+        const res = await axios.patch(
+          `/api/v1/users/user-update/${id}`,
+          payload,
+        );
         if (res.status === 200) {
           await CallSwal({
             icon: "success",

@@ -7,9 +7,20 @@ const router = useRouter();
 const userStore = UserStore();
 const permission = UsePagePermission();
 
+// ຖ້າ profile_image ເປັນ path relative (ເຊັ່ນ /uploads/profile/xxx.jpg)
+// ຕ້ອງຕໍ່ກັບ base URL ຂອງ backend (ບໍ່ແມ່ນ frontend origin)
+const API_BASE_URL = import.meta.env.VITE_BASE_URL ?? '';
+
+
+function getAvatarUrl(profileImage: string | null | undefined) {
+  if (!profileImage) return null;
+  if (profileImage.startsWith('http')) return profileImage;
+  return `${API_BASE_URL}${profileImage}`;
+}
+
 const response = computed(() => {
   return userStore.response_query_data;
-});
+}); 
 
 onMounted(async () => {
   userStore.GetListData();
@@ -29,6 +40,7 @@ async function onPageChange(page: number) {
 
 const headers = ref([
   { title: "ລຳດັບ", key: "no", sortable: false },
+  { title: "ຮູບພາບ", key: "avatar", sortable: false },
   { title: "ຊື່ຜູ້ໃຊ້ງານ", key: "username", sortable: false },
   { title: "ອີເມວ", key: "email", sortable: false },
   { title: "ຊື່ແທ້", key: "full_name", sortable: false },
@@ -47,6 +59,7 @@ const goPath = (path: string) => {
 const onsetinput = async (input: string | null) => {
   if (request !== null) {
     request.q = input ?? null;
+    request.page = 1; // ຄົ້ນຫາໃໝ່ ໃຫ້ກັບໄປໜ້າ 1
     await userStore.GetListData();
   }
 };
@@ -75,7 +88,7 @@ const onDelete = async (id: number) => {
             <div class="w-100" style="max-width: 280px">
               <GlobalDebounceEventTextField
                 :input="request.q"
-                :label="'ຄົ້ນຫາ'"
+                :label="'ຄົ້ນຫາ (ຊື່, username, email, ເບີໂທ)'"
                 @setinput="onsetinput"
               />
             </div>
@@ -114,6 +127,25 @@ const onDelete = async (id: number) => {
           >
             <template v-slot:item.no="{ index }">
               {{ index + 1 }}
+            </template>
+
+            <template v-slot:item.avatar="{ item }">
+              <v-avatar size="40" color="grey-lighten-2">
+                <v-img
+                  v-if="getAvatarUrl(item.profile_image)"
+                  :src="getAvatarUrl(item.profile_image)!"
+                  cover
+                  :alt="item.full_name"
+                >
+                  <template v-slot:placeholder>
+                    <v-icon size="20" color="grey-darken-1">mdi-account</v-icon>
+                  </template>
+                  <template v-slot:error>
+                    <v-icon size="20" color="grey-darken-1">mdi-account</v-icon>
+                  </template>
+                </v-img>
+                <v-icon v-else size="20" color="grey-darken-1">mdi-account</v-icon>
+              </v-avatar>
             </template>
 
             <template v-slot:item.status="{ item }">
