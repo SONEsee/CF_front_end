@@ -21,7 +21,7 @@ export const UserStore = defineStore("user", {
     async Login(payload: UserModel.UserLoginRequest) {
       this.login_loading = true;
       try {
-        const res = await axios.post<UserModel.UserLoginResponse>(
+        const res = await axios.post<UserModel.UserLoginResponse>(     
           "/api/v1/auth/login",
           payload,
         );
