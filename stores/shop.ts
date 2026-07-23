@@ -20,8 +20,7 @@ export const UseShopStore = defineStore("shop", {
     };
   },
   actions: {
-    // ດຶງ shop ທັງໝົດແບບບໍ່ມີ pagination — ໃຊ້ສຳລັບ dropdown/autocomplete (ເຊັ່ນ RoleCreate)
-    // ແຍກ state/loading ອອກຈາກ GetListData ໂດຍສະເພາະ ບໍ່ໃຫ້ໄປແກ້ pagination state ຂອງໜ້າ Shop list
+   
     async GetShopOptions(force = false) {
       if (this.shop_options_loaded && !force) return;
       this.shop_options_loading = true;

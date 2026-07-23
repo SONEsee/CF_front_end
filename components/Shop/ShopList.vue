@@ -81,7 +81,7 @@ const confirmChangeStatus = async () => {
   <div class="pa-4 pa-md-6 bg-grey-lighten-4" style="min-height: 100vh;">
     <v-card elevation="1" rounded="lg" width="100%" min-height="95vh" class="pa-4 pa-md-6 bg-white">
       <v-row>
-        <!-- ຫົວຂໍ້ -->
+        
         <v-col cols="12">
           <GlobalTextTitleLine
             :title="`ໜ້າຈັດການຮ້ານຄ້າ / Manage Shop (${formatNumber(
@@ -90,7 +90,7 @@ const confirmChangeStatus = async () => {
           />
         </v-col>
 
-        <!-- ສ່ວນຄົ້ນຫາ ແລະ ປຸ່ມເພີ່ມ -->
+       
         <v-col cols="12" class="d-flex flex-column flex-md-row flex-wrap justify-space-between align-stretch align-md-center ga-4 py-2">
           <div class="d-flex flex-column flex-sm-row flex-nowrap ga-3" style="min-width: 300px;">
             <div class="w-100" style="max-width: 300px">
