@@ -1,4 +1,5 @@
 import axios from "@/helpers/axios";
+import { defineStore } from "pinia";
 import { SubMenuModel } from "../models";
 import { CallSwal, goPath } from "~/composables/global";
 
@@ -21,17 +22,20 @@ export const UseSubMenuStore = defineStore("submenu", {
       this.loading = true;
       this.request_query_data.loading = true;
       try {
+        // 🟢 ສົ່ງ param `q` ( search query ) ໄປໃຫ້ Backend
         const res = await axios.get<SubMenuModel.SubMenuListResponse>(
           "/api/v1/sub/sub-menu",
           {
             params: {
               page: this.request_query_data.page,
               limit: this.request_query_data.limit,
-              q: this.request_query_data.q,
+              q: this.request_query_data.q || undefined, // ຖ້າເປັນ string ຫວ່າງ ໃຫ້ສົ່ງ undefined
             },
           }
         );
+
         if (res.status === 200) {
+          // 🟢 Backend ໄດ້ JOIN ດຶງ main_menu_name ມາໃຫ້ແລ້ວ ສາມາດນຳໃຊ້ໄດ້ເລີຍ
           this.response_query_data = res.data.items;
         }
       } catch (error) {

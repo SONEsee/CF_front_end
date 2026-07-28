@@ -69,7 +69,7 @@ const onsetinput = async (input: string | null) => {
                 @setinput="onsetinput"
               />
             </div>
-            <div class="ml-4 pt-6">
+            <div class="ml-4 d-flex flex-wrap align-end">
               <v-btn
                 color="primary"
                 flat

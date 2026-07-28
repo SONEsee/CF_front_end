@@ -41,6 +41,7 @@ export interface UserRequestBodyPatch {
   profile_image?: string;
 }
 
+
 export interface User {
   id: number;
   shop_id: number | null;

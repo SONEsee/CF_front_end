@@ -8,15 +8,15 @@ const store = UseSubMenuStore();
 const permission = UsePagePermission();
 
 const response = computed(() => store.response_query_data);
+const request = store.request_query_data;
 
 onMounted(async () => {
-  store.GetListData();
+  await store.GetListData();
 });
-
-const request = store.request_query_data;
 
 async function onSelectionChange(limit: number) {
   request.limit = limit;
+  request.page = 1; // Reset ໜ້າກັບໄປ 1 ເມື່ອປ່ຽນ Limit
   await store.GetListData();
 }
 
@@ -25,9 +25,22 @@ async function onPageChange(page: number) {
   await store.GetListData();
 }
 
+// 🟢 Function ສຳລັບ Search (ເອີ້ນໃຊ້ເມື່ອມີການພິມຄົ້ນຫາ)
+const onsetinput = async (input: string | null) => {
+  request.q = input ?? null;
+  request.page = 1; // 🟢 Reset ໜ້າກັບໄປ 1 ສະເໝີເມື່ອມີການ Search
+  await store.GetListData();
+};
+
+// 🟢 Function ເມື່ອກົດປຸ່ມ "ຄົ້ນຫາ"
+const onSearch = async () => {
+  request.page = 1; // 🟢 Reset ໜ້າກັບໄປ 1 
+  await store.GetListData();
+};
+
 const headers = ref([
   { title: "ລຳດັບ", key: "no", sortable: false },
-  { title: "Main Menu ID", key: "main_menu_id", sortable: false },
+  { title: "ເມນູຫຼັກ", key: "main_menu_name", sortable: false },
   { title: "ຊື່ເມນູຍ່ອຍ", key: "submenu_name", sortable: false },
   { title: "Route path", key: "route_path", sortable: false },
   { title: "Actions", key: "actions", sortable: false },
@@ -37,11 +50,6 @@ const formatNumber = (num: number) => new Intl.NumberFormat().format(num);
 
 const goPath = (path: string) => {
   router.push(path);
-};
-
-const onsetinput = async (input: string | null) => {
-  request.q = input ?? null;
-  await store.GetListData();
 };
 </script>
 
@@ -62,19 +70,20 @@ const onsetinput = async (input: string | null) => {
           class="d-flex flex-wrap justify-space-between align-center"
         >
           <div class="d-flex flex-wrap">
-            <div style="width: 280px">
+            <div style="width: 240px">
+              <!-- Textfield ສຳລັບຄົ້ນຫາແບບ Debounce -->
               <GlobalDebounceEventTextField
                 :input="request.q"
                 :label="'ຄົ້ນຫາ'"
                 @setinput="onsetinput"
               />
             </div>
-            <div class="ml-4 pt-6">
+            <div class="pl-5 d-flex flex-wrap align-end">
               <v-btn
                 color="primary"
                 flat
                 :loading="request.loading"
-                @click="store.GetListData()"
+                @click="onSearch"
                 >ຄົ້ນຫາ</v-btn
               >
             </div>
@@ -94,8 +103,14 @@ const onsetinput = async (input: string | null) => {
             :items="response?.list_data ?? []"
             :loading="request.loading"
           >
+            <!-- ຄິດໄລ່ລຳດັບ (No.) ຕາມ Pagination -->
             <template v-slot:item.no="{ index }">
-              {{ index + 1 }}
+              {{ ((request.page - 1) * request.limit) + index + 1 }}
+            </template>
+
+            <!-- ສະແດງຊື່ Main Menu -->
+            <template v-slot:item.main_menu_name="{ item }">
+              {{ item.main_menu_name || '-' }}
             </template>
 
             <template v-slot:item.actions="{ item }">

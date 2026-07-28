@@ -21,9 +21,9 @@ export const UserStore = defineStore("user", {
     async Login(payload: UserModel.UserLoginRequest) {
       this.login_loading = true;
       try {
-        const res = await axios.post<UserModel.UserLoginResponse>(
+        const res = await axios.post<UserModel.UserLoginResponse>(     
           "/api/v1/auth/login",
-          payload
+          payload,
         );
 
         if (res.data.status === 1) {
@@ -51,7 +51,7 @@ export const UserStore = defineStore("user", {
               limit: this.request_query_data.limit,
               q: this.request_query_data.q,
             },
-          }
+          },
         );
         if (res.status === 200) {
           this.response_query_data = res.data.items;
@@ -69,7 +69,7 @@ export const UserStore = defineStore("user", {
       try {
         const res = await axios.get<UserModel.UserDetailResponse>(
           "/api/v1/users/getData",
-          { params: { id } }
+          { params: { id } },
         );
         if (res.status === 200) {
           this.response_detail_query_data = res.data.items[0] ?? null;
@@ -81,10 +81,12 @@ export const UserStore = defineStore("user", {
       }
     },
 
-    async CreateData(payload: UserModel.UserRequestBody) {
+    async CreateData(payload: FormData) {
       this.loading = true;
       try {
-        const res = await axios.post("/api/v1/users/create", payload);
+        const res = await axios.post("/api/v1/users/create", payload, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
         if (res.status === 200) {
           await CallSwal({
             icon: "success",
@@ -109,10 +111,12 @@ export const UserStore = defineStore("user", {
       }
     },
 
-    async UpdateData(id: string | number, payload: UserModel.UserRequestBodyPatch) {
+    async UpdateData(id: string | number, payload: FormData) {
       this.loading = true;
       try {
-        const res = await axios.patch(`/api/v1/users/user-update/${id}`, payload);
+        const res = await axios.patch(`/api/v1/users/user-update/${id}`, payload, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
         if (res.status === 200) {
           await CallSwal({
             icon: "success",
@@ -141,8 +145,8 @@ export const UserStore = defineStore("user", {
       try {
         const notification = await CallSwal({
           icon: "warning",
-          title: "ຄຳເຕືອນ",
-          text: "ທ່ານກຳລັງປິດການໃຊ້ງານຜູ້ໃຊ້ນີ້ ທ່ານແນ່ໃຈແລ້ວບໍ່?",
+          title: "ລຶບຜູ້ໃຊ້",
+          text: "ທ່ານແນ່ໃຈແລ້ວບໍ່ທີ່ຈະລຶບຜູ້ໃຊ້ນີ້ ?",
           showCancelButton: true,
           confirmButtonText: "ຕົກລົງ",
           cancelButtonText: "ຍົກເລີກ",
@@ -152,13 +156,56 @@ export const UserStore = defineStore("user", {
         this.loading = true;
         const res = await axios.delete(`/api/v1/users/deleted/${id}`);
         if (res.status === 200) {
+          await CallSwal({
+            icon: "success",
+            title: "ສຳເລັດ",
+            text: "ລຶບຜູ້ໃຊ້ງານສຳເລັດແລ້ວ",
+            timer: 1500,
+            showConfirmButton: false,
+          });
           await this.GetListData();
         }
-      } catch (error) {
-        console.error("Error deactivating user:", error);
+      } catch (error: any) {
+        await CallSwal({
+          icon: "error",
+          title: "ຜິດພາດ",
+          text: error.response?.data?.message ?? "ບໍ່ສາມາດລຶບຜູ້ໃຊ້ງານໄດ້",
+        });
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // ສະຫຼັບສະຖານະ ເປີດ/ປິດ ການໃຊ້ງານ (ໃຊ້ຢູ່ໜ້າ detail)
+    async ToggleStatus(id: string | number, isActive: boolean) {
+      this.loading = true;
+      try {
+        const res = await axios.patch(`/api/v1/users/toggle-status/${id}`, {
+          is_active: isActive,
+        });
+        if (res.status === 200) {
+          await CallSwal({
+            icon: "success",
+            title: "ສຳເລັດ",
+            text: isActive ? "ເປີດໃຊ້ງານສຳເລັດແລ້ວ" : "ປິດໃຊ້ງານສຳເລັດແລ້ວ",
+            timer: 1200,
+            showConfirmButton: false,
+          });
+          return true;
+        }
+        return false;
+      } catch (error: any) {
+        await CallSwal({
+          icon: "error",
+          title: "ຜິດພາດ",
+          text: error.response?.data?.message ?? "ບໍ່ສາມາດປ່ຽນສະຖານະໄດ້",
+        });
+        return false;
       } finally {
         this.loading = false;
       }
     },
   },
+  
+  
 });

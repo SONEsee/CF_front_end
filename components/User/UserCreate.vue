@@ -45,6 +45,7 @@ const onFileChange = (event: Event) => {
 const submitForm = async () => {
   const { valid } = await form.value.validate();
   if (!valid) return;
+  if (avatarError.value) return;
 
   let profileImage: string | undefined;
   if (selectedFile.value) {
@@ -80,6 +81,56 @@ const submitForm = async () => {
       <GlobalPermissionDenied v-if="!permission.can_create" />
 
       <v-form v-else id="user-create-form" ref="form" @submit.prevent="submitForm">
+        <!-- ==== Profile Image Upload ==== -->
+        <v-row class="mb-2">
+          <v-col cols="12" class="d-flex align-center">
+            <div class="position-relative" style="width: 96px">
+              <v-avatar size="96" color="grey-lighten-2" class="cursor-pointer" @click="openFilePicker">
+                <v-img v-if="avatarPreview" :src="avatarPreview" cover />
+                <v-icon v-else size="40" color="grey-darken-1">mdi-account</v-icon>
+              </v-avatar>
+
+              <v-btn
+                icon
+                size="x-small"
+                color="primary"
+                class="position-absolute"
+                style="bottom: 0; right: 0"
+                @click="openFilePicker"
+              >
+                <v-icon size="16">mdi-camera</v-icon>
+              </v-btn>
+            </div>
+
+            <div class="ml-4">
+              <div class="text-body-2 mb-1">ຮູບໂປຣໄຟລ໌ (ບໍ່ບັງຄັບ)</div>
+              <div class="d-flex ga-2">
+                <v-btn size="small" variant="outlined" @click="openFilePicker">ເລືອກຮູບ</v-btn>
+                <v-btn
+                  v-if="avatarPreview"
+                  size="small"
+                  variant="text"
+                  color="error"
+                  @click="removeAvatar"
+                  >ລຶບຮູບ</v-btn
+                >
+              </div>
+              <div v-if="avatarError" class="text-error text-caption mt-1">
+                {{ avatarError }}
+              </div>
+              <div v-else class="text-caption text-grey mt-1">JPG, PNG, WEBP ຂະໜາດບໍ່ເກີນ 2MB</div>
+            </div>
+
+            <input
+              ref="fileInput"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              class="d-none"
+              @change="onAvatarChange"
+            />
+          </v-col>
+        </v-row>
+
         <v-row>
           <v-col cols="12" md="3">
             <v-row>

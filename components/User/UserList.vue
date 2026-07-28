@@ -11,7 +11,7 @@ const { roleName } = UseRoleNameResolver();
 
 const response = computed(() => {
   return userStore.response_query_data;
-});
+}); 
 
 onMounted(async () => {
   userStore.GetListData();
@@ -80,7 +80,7 @@ const onDelete = async (id: number) => {
             <div style="width: 280px">
               <GlobalDebounceEventTextField
                 :input="request.q"
-                :label="'ຄົ້ນຫາ'"
+                :label="'ຄົ້ນຫາ (ຊື່, username, email, ເບີໂທ)'"
                 @setinput="onsetinput"
               />
             </div>
