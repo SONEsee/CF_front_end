@@ -54,7 +54,7 @@ const onsetinput = async (input: string | null) => {
         <v-col cols="12">
           <GlobalTextTitleLine
             :title="`ບັນຊີທະນາຄານຮ້ານຄ້າ / Shop Bank Account (${formatNumber(
-              response?.pagination?.total_page ?? 0
+              response?.pagination?.total_items ?? 0
             )})`"
           />
         </v-col>
@@ -133,7 +133,7 @@ const onsetinput = async (input: string | null) => {
               <GlobalTablePaginations
                 :page="request.page"
                 :limit="request.limit"
-                :totalpage="response?.pagination?.total_items ?? 1"
+                :totalpage="response?.pagination?.total_page ?? 1"
                 @onSelectionChange="onSelectionChange"
                 @onPagechange="onPageChange"
               />

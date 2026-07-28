@@ -5,5 +5,5 @@ definePageMeta({
 });
 </script>
 <template>
-    <UserUpdate />
+    <UserEdit />
 </template>

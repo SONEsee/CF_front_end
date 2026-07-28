@@ -2,10 +2,10 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { UseRoleStore } from "@/stores/role";
-
 const router = useRouter();
 const store = UseRoleStore();
 const permission = UsePagePermission();
+const { shopName } = UseShopNameResolver();
 
 const response = computed(() => store.response_query_data);
 
@@ -27,7 +27,7 @@ async function onPageChange(page: number) {
 
 const headers = ref([
   { title: "ລຳດັບ", key: "no", sortable: false },
-  { title: "Shop ID", key: "shop_id", sortable: false },
+  { title: "ຮ້ານຄ້າ", key: "shop_id", sortable: false },
   { title: "ຊື່ສິດການນຳໃຊ້", key: "role_name", sortable: false },
   { title: "ລາຍລະອຽດ", key: "description", sortable: false },
   { title: "Actions", key: "actions", sortable: false },
@@ -41,18 +41,19 @@ const goPath = (path: string) => {
 
 const onsetinput = async (input: string | null) => {
   request.q = input ?? null;
+  request.page = 1;
   await store.GetListData();
 };
 </script>
 
 <template>
-  <div class="pa-6">
+  <div class="pa-2">
     <v-card elevation="0" tile width="100%" min-height="95vh" class="pa-6">
       <v-row>
         <v-col cols="12">
           <GlobalTextTitleLine
             :title="`ຈັດການສິດການນຳໃຊ້ / Manage Role (${formatNumber(
-              response?.pagination?.total_page ?? 0
+              response?.pagination?.total_items ?? 0,
             )})`"
           />
         </v-col>
@@ -71,6 +72,7 @@ const onsetinput = async (input: string | null) => {
             </div>
             <div class="ml-4 pt-6">
               <v-btn
+                class="mt-2"
                 color="primary"
                 flat
                 :loading="request.loading"
@@ -80,8 +82,15 @@ const onsetinput = async (input: string | null) => {
             </div>
           </div>
 
-          <div v-if="permission.can_create" class="d-flex flex-wrap align-center">
-            <v-btn color="primary" elevation="0" @click="goPath('/role/create')">
+          <div
+            v-if="permission.can_create"
+            class="d-flex flex-wrap align-center"
+          >
+            <v-btn
+              color="primary"
+              elevation="0"
+              @click="goPath('/role/create')"
+            >
               <v-icon class="mr-2"> mdi-plus</v-icon>
               ເພີ່ມສິດການນຳໃຊ້
             </v-btn>
@@ -96,6 +105,10 @@ const onsetinput = async (input: string | null) => {
           >
             <template v-slot:item.no="{ index }">
               {{ index + 1 }}
+            </template>
+
+            <template v-slot:item.shop_id="{ item }">
+              {{ shopName(item.shop_id) }}
             </template>
 
             <template v-slot:item.actions="{ item }">
@@ -122,7 +135,7 @@ const onsetinput = async (input: string | null) => {
               <GlobalTablePaginations
                 :page="request.page"
                 :limit="request.limit"
-                :totalpage="response?.pagination?.total_items ?? 1"
+                :totalpage="response?.pagination?.total_page ?? 1"
                 @onSelectionChange="onSelectionChange"
                 @onPagechange="onPageChange"
               />

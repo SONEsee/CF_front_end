@@ -26,13 +26,13 @@ async function onPageChange(page: number) {
 }
 
 const headers = [
-  { title: "ລຳດັບ", key: "no", sortable: false, align: "center", width: "80px" },
-  { title: "ໂລໂກ້", key: "image_url", sortable: false, align: "center" },
+  { title: "ລຳດັບ", key: "no", sortable: false },
+  { title: "ໂລໂກ້", key: "image_url", sortable: false},
   { title: "ຊື່ຮ້ານ", key: "shop_name", sortable: false },
   { title: "ເບີໂທ", key: "phone", sortable: false },
-  { title: "Timezone", key: "timezone", sortable: false },
-  { title: "ສະຖານະ", key: "status", sortable: false, align: "center" },
-  { title: "ຈັດການ", key: "actions", sortable: false, align: "center", width: "150px" },
+  { title: "Timezone", key: "timezone" },
+  { title: "ສະຖານະ", key: "status" },
+  { title: "ຈັດການ", key: "actions" },
 ] as const;
 
 const formatNumber = (num: number) => new Intl.NumberFormat().format(num);
@@ -81,16 +81,16 @@ const confirmChangeStatus = async () => {
   <div class="pa-4 pa-md-6 bg-grey-lighten-4" style="min-height: 100vh;">
     <v-card elevation="1" rounded="lg" width="100%" min-height="95vh" class="pa-4 pa-md-6 bg-white">
       <v-row>
-        <!-- ຫົວຂໍ້ -->
+        
         <v-col cols="12">
           <GlobalTextTitleLine
             :title="`ໜ້າຈັດການຮ້ານຄ້າ / Manage Shop (${formatNumber(
-              response?.pagination?.total_page ?? 0
+              response?.pagination?.total_items ?? 0
             )})`"
           />
         </v-col>
 
-        <!-- ສ່ວນຄົ້ນຫາ ແລະ ປຸ່ມເພີ່ມ -->
+       
         <v-col cols="12" class="d-flex flex-column flex-md-row flex-wrap justify-space-between align-stretch align-md-center ga-4 py-2">
           <div class="d-flex flex-column flex-sm-row flex-nowrap ga-3" style="min-width: 300px;">
             <div class="w-100" style="max-width: 300px">
@@ -104,7 +104,7 @@ const confirmChangeStatus = async () => {
               <v-btn
                 class="w-100 w-sm-auto"
                 color="primary"
-                variant="tonal"
+                
                 :loading="request.loading"
                 @click="shopStore.GetListData()"
               >
@@ -115,7 +115,7 @@ const confirmChangeStatus = async () => {
           </div>
 
           <div v-if="permission.can_create" class="d-flex">
-            <v-btn class="w-100 w-md-auto" color="primary" variant="tonal" @click="goPath('/shop/create')">
+            <v-btn class="w-100 w-md-auto" color="primary"  @click="goPath('/shop/create')">
               <v-icon start> mdi-plus </v-icon>
               ເພີ່ມຮ້ານຄ້າ
             </v-btn>
@@ -126,15 +126,15 @@ const confirmChangeStatus = async () => {
           <v-divider></v-divider>
         </v-col>
 
-        <!-- ຕາຕະລາງຂໍ້ມູນ -->
+    
         <v-col cols="12" class="mt-2">
-          <!-- ເພີ່ມ class="text-no-wrap" ຕົງນີ້ -->
+          
           <v-data-table
             class="text-no-wrap"
             :headers="headers"
             :items="response?.list_data ?? []"
             :loading="request.loading"
-            density="comfortable"
+            density="compact"
             hover
             mobile-breakpoint="sm"
             items-per-page-text="ສະແດງຂໍ້ມູນຕໍ່ໜ້າ:"
@@ -236,7 +236,7 @@ const confirmChangeStatus = async () => {
               <GlobalTablePaginations
                 :page="request.page"
                 :limit="request.limit"
-                :totalpage="response?.pagination?.total_items ?? 1"
+                :totalpage="response?.pagination?.total_page ?? 1"
                 @onSelectionChange="onSelectionChange"
                 @onPagechange="onPageChange"
               />

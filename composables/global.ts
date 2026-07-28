@@ -4,6 +4,8 @@ import { AxiosError } from "axios";
 import type { SweetAlertOptions } from "sweetalert2";
 import { DefaultResponseModel } from "@/models/";
 import { UsePermissionGuardStore } from "@/stores/permissionGuard";
+import { UseShopStore } from "@/stores/shop";
+import { UseRoleStore } from "@/stores/role";
 
 // ໃຊ້ຜູກປຸ່ມ create/edit/delete ຂອງໜ້າ CRUD ໃສ່ສິດອະນຸຍາດ (permissions) ຂອງ role ປັດຈຸບັນ
 // submenuId ຖືກອ່ານຈາກ route.meta.submenuId ທີ່ກຳນົດຜ່ານ definePageMeta() ຂອງແຕ່ລະ page
@@ -15,6 +17,62 @@ export const UsePagePermission = () => {
     guard.Load();
   }
   return computed(() => guard.can(route.meta.submenuId));
+};
+
+// ໃຊ້ແປ shop_id -> shop_name ໃນຕາຕະລາງ/ຟອມໃດໆ (ດຶງ shop_options ຄັ້ງດຽວ, ໃຊ້ຊ້ຳໄດ້ທຸກບ່ອນ)
+// ອັດຕະໂນມັດໂຫລດຄັ້ງທຳອິດທີ່ຖືກເອີ້ນໃຊ້, ຄືກັນກັບ UsePagePermission
+export const UseShopNameResolver = () => {
+  const shopStore = UseShopStore();
+  if (!shopStore.shop_options_loaded && !shopStore.shop_options_loading) {
+    shopStore.GetShopOptions();
+  }
+
+  const shopNameById = computed(() => {
+    const map = new Map<number, string>();
+    for (const shop of shopStore.shop_options) {
+      map.set(shop.id, shop.shop_name);
+    }
+    return map;
+  });
+
+  const shopName = (shopId: number | null | undefined) => {
+    if (!shopId) return "-";
+    return shopNameById.value.get(shopId) ?? `#${shopId}`;
+  };
+
+  return {
+    shopName,
+    shopOptions: computed(() => shopStore.shop_options),
+    loading: computed(() => shopStore.shop_options_loading),
+  };
+};
+
+// ໃຊ້ແປ role_id -> role_name ໃນຕາຕະລາງ/ຟອມໃດໆ (ດຶງ role_options ຄັ້ງດຽວ, ໃຊ້ຊ້ຳໄດ້ທຸກບ່ອນ)
+// ຄືກັນກັບ UseShopNameResolver
+export const UseRoleNameResolver = () => {
+  const roleStore = UseRoleStore();
+  if (!roleStore.role_options_loaded && !roleStore.role_options_loading) {
+    roleStore.GetRoleOptions();
+  }
+
+  const roleNameById = computed(() => {
+    const map = new Map<number, string>();
+    for (const role of roleStore.role_options) {
+      map.set(role.id, role.role_name);
+    }
+    return map;
+  });
+
+  const roleName = (roleId: number | null | undefined) => {
+    if (!roleId) return "-";
+    return roleNameById.value.get(roleId) ?? `#${roleId}`;
+  };
+
+  return {
+    roleName,
+    roleOptions: computed(() => roleStore.role_options),
+    loading: computed(() => roleStore.role_options_loading),
+  };
 };
 
 // ດຶງ id ຂອງຜູ້ໃຊ້ທີ່ login ຢູ່ໃນປັດຈຸບັນ (ຈາກ localStorage) ໃຊ້ຝັງ user_id ຫຼັງບ້ານ

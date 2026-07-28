@@ -30,9 +30,6 @@ export interface Shop {
   updated_at: string;
 }
 
-// NOTE: go-echo-template's presenters.ResponseSuccessListData has a known bug
-// where the "total_page" and "total_items" json keys are swapped: total_page
-// actually holds the record count, total_items actually holds the page count.
 export interface Pagination {
   current_page: number;
   current_page_total_item: number;
@@ -56,4 +53,17 @@ export interface ShopDetailResponse {
   status: number;
   message: string;
   items: Shop[];
+}
+
+export interface ShopOption {
+  id: number;
+  shop_name: string;
+}
+
+// /api/v1/shop/shop-options — ບໍ່ມີ pagination, ໃຊ້ສຳລັບ dropdown/autocomplete
+export interface ShopOptionsResponse {
+  timestamp: string;
+  status: number;
+  message: string;
+  items: ShopOption[];
 }
