@@ -8,7 +8,6 @@ const permission = UsePagePermission();
 const { shopName } = UseShopNameResolver();
 
 const response = computed(() => store.response_query_data);
-
 onMounted(async () => {
   store.GetListData();
 });
