@@ -45,40 +45,44 @@ export const UsePermissionGuardStore = defineStore("permissionGuard", {
   },
   actions: {
     async Load(force = false) {
-      if (this.loaded && !force) return;
-      this.loading = true;
-      try {
-        const res = await axios.get<{ items: PermissionRow[] }>(
-          "/api/v1/permission/permission"
-        );
-        this.permissions = res.data.items ?? [];
-        this.loaded = true;
-      } catch (error) {
-        console.error("Error loading permission guard data:", error);
-        this.permissions = [];
-      } finally {
-        this.loading = false;
-      }
-    },
+  if (this.loaded && !force) return;
+  this.loading = true;
+  try {
+    const res = await axios.get<{ items: { list_data: PermissionRow[] } }>(
+      "/api/v1/permission/permission",
+      { params: { page: 1, limit: 9999 } } // ບັງຄັບໃຫ້ໄດ້ຄົບທຸກລາຍການ
+    );
+    this.permissions = res.data.items?.list_data ?? [];
+    this.loaded = true;
+  } catch (error) {
+    console.error("Error loading permission guard data:", error);
+    this.permissions = [];
+  } finally {
+    this.loading = false;
+  }
+},
 
     // ດຶງສິດອະນຸຍາດຂອງ role ປັດຈຸບັນ ສຳລັບ submenu_id ໜຶ່ງ (ຈາກ route meta ຂອງໜ້ານັ້ນ)
     // ຖ້າຍັງບໍ່ໄດ້ Load() / ບໍ່ມີ submenuId / ບໍ່ພົບຂໍ້ມູນ -> deny ໝົດ (fail-safe)
     can(submenuId: number | undefined): PermissionFlags {
-      if (!this.loaded || this.roleId === null || submenuId === undefined) {
-        return DENY_ALL;
-      }
+  if (!this.loaded || this.roleId === null || submenuId === undefined || !Array.isArray(this.permissions)) {
+    return DENY_ALL;
+  }
 
-      const permission = this.permissions.find(
-        (p) => p.role_id === this.roleId && p.submenu_id === submenuId
-      );
-      if (!permission) return DENY_ALL;
+  const roleId = Number(this.roleId);
+  const targetSubmenuId = Number(submenuId);
 
-      return {
-        can_view: permission.can_view,
-        can_create: permission.can_create,
-        can_update: permission.can_update,
-        can_delete: permission.can_delete,
-      };
-    },
+  const permission = this.permissions.find(
+    (p) => Number(p.role_id) === roleId && Number(p.submenu_id) === targetSubmenuId
+  );
+  if (!permission) return DENY_ALL;
+
+  return {
+    can_view: permission.can_view,
+    can_create: permission.can_create,
+    can_update: permission.can_update,
+    can_delete: permission.can_delete,
+  };
+},
   },
 });
