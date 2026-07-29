@@ -67,14 +67,14 @@
 <script lang="ts" setup>
 import { UserStore } from "@/stores/user";
 import { ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import Swal from "sweetalert2";
+import { goPath } from "~/composables/global";
 
 const username = ref(null);
 const password = ref(null);
 const visible = ref(false);
 const form = ref();
-const router = useRouter();
 const route = useRoute();
 const userStore = UserStore();
 const loading = computed(() => userStore.login_loading);
@@ -85,10 +85,6 @@ const redirectPath = computed(() => {
   // ອະນຸຍາດສະເພາະ path ພາຍໃນເວັບ (ຂຶ້ນຕົ້ນດ້ວຍ "/" ດຽວ) ເພື່ອປ້ອງກັນ open-redirect
   return path && path.startsWith("/") && !path.startsWith("//") ? path : "/home";
 });
-
-const goPath = (path: string) => {
-  router.push(path);
-};
 
 const handleLogin = async () => {
   try {

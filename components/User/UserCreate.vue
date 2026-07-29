@@ -1,17 +1,15 @@
 <script lang="ts" setup>
 import { UserStore } from "@/stores/user";
-import { UseUploadStore } from "@/stores/upload";
 import { UseShopStore } from "@/stores/shop";
 import { UseRoleStore } from "@/stores/role";
 import notfoundImage from "@/assets/img/404.png";
 
 const userStore = UserStore();
-const uploadStore = UseUploadStore();
 const shopStore = UseShopStore();
 const roleStore = UseRoleStore();
 const permission = UsePagePermission();
 const title = ref("ເພີ່ມຜູ້ໃຊ້ງານ");
-const loading = computed(() => userStore.loading || uploadStore.loading);
+const loading = computed(() => userStore.loading);
 const form = ref();
 const file = ref();
 const selectedFile = ref<File | null>(null);
@@ -45,25 +43,24 @@ const onFileChange = (event: Event) => {
 const submitForm = async () => {
   const { valid } = await form.value.validate();
   if (!valid) return;
-  if (avatarError.value) return;
 
-  let profileImage: string | undefined;
+  const formData = new FormData();
+  formData.append("username", request.value.username);
+  formData.append("password", request.value.password);
+  formData.append("full_name", request.value.full_name);
+  if (request.value.role_id !== null) {
+    formData.append("role_id", String(request.value.role_id));
+  }
+  if (request.value.shop_id !== null) {
+    formData.append("shop_id", String(request.value.shop_id));
+  }
+  if (request.value.email) formData.append("email", request.value.email);
+  if (request.value.phone) formData.append("phone", request.value.phone);
   if (selectedFile.value) {
-    const uploadedUrl = await uploadStore.UploadImage(selectedFile.value, "user");
-    if (!uploadedUrl) return;
-    profileImage = uploadedUrl;
+    formData.append("profile_image", selectedFile.value);
   }
 
-  await userStore.CreateData({
-    shop_id: request.value.shop_id,
-    role_id: request.value.role_id as number,
-    username: request.value.username,
-    password: request.value.password,
-    full_name: request.value.full_name,
-    email: request.value.email || undefined,
-    phone: request.value.phone || undefined,
-    profile_image: profileImage,
-  });
+  await userStore.CreateData(formData);
 };
 </script>
 
@@ -81,56 +78,6 @@ const submitForm = async () => {
       <GlobalPermissionDenied v-if="!permission.can_create" />
 
       <v-form v-else id="user-create-form" ref="form" @submit.prevent="submitForm">
-        <!-- ==== Profile Image Upload ==== -->
-        <v-row class="mb-2">
-          <v-col cols="12" class="d-flex align-center">
-            <div class="position-relative" style="width: 96px">
-              <v-avatar size="96" color="grey-lighten-2" class="cursor-pointer" @click="openFilePicker">
-                <v-img v-if="avatarPreview" :src="avatarPreview" cover />
-                <v-icon v-else size="40" color="grey-darken-1">mdi-account</v-icon>
-              </v-avatar>
-
-              <v-btn
-                icon
-                size="x-small"
-                color="primary"
-                class="position-absolute"
-                style="bottom: 0; right: 0"
-                @click="openFilePicker"
-              >
-                <v-icon size="16">mdi-camera</v-icon>
-              </v-btn>
-            </div>
-
-            <div class="ml-4">
-              <div class="text-body-2 mb-1">ຮູບໂປຣໄຟລ໌ (ບໍ່ບັງຄັບ)</div>
-              <div class="d-flex ga-2">
-                <v-btn size="small" variant="outlined" @click="openFilePicker">ເລືອກຮູບ</v-btn>
-                <v-btn
-                  v-if="avatarPreview"
-                  size="small"
-                  variant="text"
-                  color="error"
-                  @click="removeAvatar"
-                  >ລຶບຮູບ</v-btn
-                >
-              </div>
-              <div v-if="avatarError" class="text-error text-caption mt-1">
-                {{ avatarError }}
-              </div>
-              <div v-else class="text-caption text-grey mt-1">JPG, PNG, WEBP ຂະໜາດບໍ່ເກີນ 2MB</div>
-            </div>
-
-            <input
-              ref="fileInput"
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              class="d-none"
-              @change="onAvatarChange"
-            />
-          </v-col>
-        </v-row>
-
         <v-row>
           <v-col cols="12" md="3">
             <v-row>

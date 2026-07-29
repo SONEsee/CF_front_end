@@ -1,20 +1,15 @@
 <script lang="ts" setup>
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { UseMainMenuStore } from "@/stores/mainmenu";
 import { UseModuleStore } from "@/stores/module";
 
 const router = useRouter();
-const store = UseMainMenuStore();
-const moduleStore = UseModuleStore();
+const store = UseModuleStore();
 const permission = UsePagePermission();
-const { moduleName } = UseModuleNameResolver();
 
 const response = computed(() => store.response_query_data);
-const moduleOptionsLoading = computed(() => moduleStore.module_options_loading);
 
 onMounted(async () => {
-  moduleStore.GetModuleOptions();
   store.GetListData();
 });
 
@@ -30,16 +25,10 @@ async function onPageChange(page: number) {
   await store.GetListData();
 }
 
-async function onFilterChange() {
-  request.page = 1;
-  await store.GetListData();
-}
-
 const headers = ref([
   { title: "ລຳດັບ", key: "no", sortable: false },
-  { title: "ໂມດູນ", key: "module_id", sortable: false },
-  { title: "ຊື່ເມນູ", key: "menu_name", sortable: false },
-  { title: "Icon", key: "icon_class", sortable: false },
+  { title: "ຊື່ໂມດູນ", key: "module_name", sortable: false },
+  { title: "ລຳດັບສະແດງ", key: "display_order", sortable: false },
   { title: "Actions", key: "actions", sortable: false },
 ]);
 
@@ -62,7 +51,7 @@ const onsetinput = async (input: string | null) => {
       <v-row>
         <v-col cols="12">
           <GlobalTextTitleLine
-            :title="`ຈັດການເມນູຫຼັກ / Manage Main Menu (${formatNumber(
+            :title="`ຈັດການໂມດູນ / Manage Module (${formatNumber(
               response?.pagination?.total_items ?? 0
             )})`"
           />
@@ -72,7 +61,7 @@ const onsetinput = async (input: string | null) => {
           cols="12"
           class="d-flex flex-wrap justify-space-between align-center"
         >
-          <div class="d-flex flex-wrap ga-4 align-end">
+          <div class="d-flex flex-wrap">
             <div style="width: 280px">
               <GlobalDebounceEventTextField
                 :input="request.q"
@@ -80,24 +69,7 @@ const onsetinput = async (input: string | null) => {
                 @setinput="onsetinput"
               />
             </div>
-
-            <div style="width: 240px">
-              <v-autocomplete
-                v-model.number="request.module_id"
-                :items="moduleStore.module_options"
-                :loading="moduleOptionsLoading"
-                item-title="module_name"
-                item-value="id"
-                label="ໂມດູນ"
-                clearable
-                density="compact"
-                variant="outlined"
-                hide-details
-                @update:model-value="onFilterChange"
-              ></v-autocomplete>
-            </div>
-
-            <div>
+            <div class="ml-4 d-flex flex-wrap align-end">
               <v-btn
                 color="primary"
                 flat
@@ -109,9 +81,9 @@ const onsetinput = async (input: string | null) => {
           </div>
 
           <div v-if="permission.can_create" class="d-flex flex-wrap align-center">
-            <v-btn color="primary" elevation="0" @click="goPath('/main-menu/create')">
+            <v-btn color="primary" elevation="0" @click="goPath('/module/create')">
               <v-icon class="mr-2"> mdi-plus</v-icon>
-              ເພີ່ມເມນູຫຼັກ
+              ເພີ່ມໂມດູນ
             </v-btn>
           </div>
         </v-col>
@@ -127,17 +99,13 @@ const onsetinput = async (input: string | null) => {
               {{ index + 1 }}
             </template>
 
-            <template v-slot:item.module_id="{ item }">
-              {{ moduleName(item.module_id) }}
-            </template>
-
             <template v-slot:item.actions="{ item }">
               <v-btn
                 v-if="permission.can_update"
                 color="primary"
                 icon="mdi-pencil"
                 variant="text"
-                @click="goPath(`/main-menu/edit?id=${item.id}`)"
+                @click="goPath(`/module/edit?id=${item.id}`)"
                 size="small"
               ></v-btn>
 

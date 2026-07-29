@@ -10,13 +10,35 @@ export const UseMainMenuStore = defineStore("mainmenu", {
       response_detail_query_data: null as MainMenuModel.MainMenu | null,
       request_query_data: {
         q: null as string | null,
+        module_id: null as number | null,
         limit: 20,
         page: 1,
         loading: false,
       },
+      main_menu_options: [] as MainMenuModel.MainMenuOption[],
+      main_menu_options_loading: false,
+      main_menu_options_loaded: false,
     };
   },
   actions: {
+    async GetMainMenuOptions(force = false) {
+      if (this.main_menu_options_loaded && !force) return;
+      this.main_menu_options_loading = true;
+      try {
+        const res = await axios.get<MainMenuModel.MainMenuOptionsResponse>(
+          "/api/v1/main/main-menu-options"
+        );
+        if (res.status === 200) {
+          this.main_menu_options = res.data.items ?? [];
+          this.main_menu_options_loaded = true;
+        }
+      } catch (error) {
+        console.error("Error fetching main menu options:", error);
+      } finally {
+        this.main_menu_options_loading = false;
+      }
+    },
+
     async GetListData() {
       this.loading = true;
       this.request_query_data.loading = true;
@@ -28,6 +50,7 @@ export const UseMainMenuStore = defineStore("mainmenu", {
               page: this.request_query_data.page,
               limit: this.request_query_data.limit,
               q: this.request_query_data.q,
+              module_id: this.request_query_data.module_id,
             },
           }
         );

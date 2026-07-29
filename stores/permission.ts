@@ -10,6 +10,8 @@ export const UsePermissionStore = defineStore("permission", {
       response_detail_query_data: null as PermissionModel.Permission | null,
       request_query_data: {
         q: null as string | null,
+        role_id: null as number | null,
+        submenu_id: null as number | null,
         limit: 20,
         page: 1,
         loading: false,
@@ -28,6 +30,8 @@ export const UsePermissionStore = defineStore("permission", {
               page: this.request_query_data.page,
               limit: this.request_query_data.limit,
               q: this.request_query_data.q,
+              role_id: this.request_query_data.role_id,
+              submenu_id: this.request_query_data.submenu_id,
             },
           }
         );

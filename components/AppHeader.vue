@@ -100,6 +100,7 @@
 <script lang="ts" setup>
 import { UseMainMenuStore } from "@/stores/mainmenu";
 import { UseSubMenuStore } from "@/stores/submenu";
+import { UsePermissionGuardStore } from "@/stores/permissionGuard";
 
 const User = localStorage.getItem("user");
 const userData = User ? JSON.parse(User) : null;
@@ -107,6 +108,7 @@ const user = userData ? userData : null;
 
 const mainMenuStore = UseMainMenuStore();
 const subMenuStore = UseSubMenuStore();
+const permissionGuard = UsePermissionGuardStore();
 const navLoading = ref(true);
 const navError = ref(false);
 
@@ -118,34 +120,8 @@ const staticItems = [
   },
 ];
 
-// ໃຊ້ຄາຄົງທີ່ນີ້ເປັນ fallback ຖ້າ backend ຍັງບໍ່ໄດ້ seed ຂໍ້ມູນ main-menu/sub-menu ຫຼືດຶງຂໍ້ມູນລົ້ມເຫຼວ
-const fallbackItems = [
-  {
-    title: "ຜູ້ໃຊ້ງານ",
-    menu: [
-      { text: "ຈັດການຂໍ້ມູນຜູ້ໃຊ້ງານ", icon: "mdi-account-cog", to: "/user" },
-    ],
-  },
-  {
-    title: "ຮ້ານຄ້າ",
-    menu: [
-      { text: "ຈັດການຮ້ານຄ້າ", icon: "mdi-store-cog", to: "/shop" },
-      { text: "ຄ່າຕັ້ງຮ້ານຄ້າ", icon: "mdi-cog-outline", to: "/shop-setting" },
-      { text: "ບັນຊີທະນາຄານຮ້ານຄ້າ", icon: "mdi-bank", to: "/shop-bank-account" },
-    ],
-  },
-  {
-    title: "ສິດທິ ແລະ ເມນູ",
-    menu: [
-      { text: "ຈັດການສິດການນຳໃຊ້", icon: "mdi-shield-account", to: "/role" },
-      { text: "ຈັດການສິດອະນຸຍາດ", icon: "mdi-shield-key", to: "/permission" },
-      { text: "ຈັດການເມນູຫຼັກ", icon: "mdi-menu", to: "/main-menu" },
-      { text: "ຈັດການເມນູຍ່ອຍ", icon: "mdi-menu-open", to: "/sub-menu" },
-    ],
-  },
-];
-
 // ສ້າງໂຄງສ້າງເມນູຈາກ MainMenu (ຫົວຂໍ້ກຸ່ມ) + SubMenu (link ພາຍໃນກຸ່ມ) ຂອງ backend ຈິງ
+// ກັ່ນຕອງດ້ວຍ permissions ຕາຕະລາງ (role ປັດຈຸບັນ) — sub_menu ໃດທີ່ role ນີ້ບໍ່ມີ can_view ຈະບໍ່ສະແດງ
 const dynamicItems = computed(() => {
   const mainMenus = mainMenuStore.response_query_data?.list_data ?? [];
   const subMenus = subMenuStore.response_query_data?.list_data ?? [];
@@ -154,7 +130,7 @@ const dynamicItems = computed(() => {
     .map((menu) => ({
       title: menu.menu_name,
       menu: subMenus
-        .filter((sub) => sub.main_menu_id === menu.id)
+        .filter((sub) => sub.main_menu_id === menu.id && permissionGuard.can(sub.id).can_view)
         .map((sub) => ({
           text: sub.submenu_name,
           icon: menu.icon_class || "mdi-circle-small",
@@ -166,8 +142,7 @@ const dynamicItems = computed(() => {
 
 const items = computed(() => {
   if (navLoading.value) return staticItems;
-  if (dynamicItems.value.length > 0) return [...staticItems, ...dynamicItems.value];
-  return [...staticItems, ...fallbackItems];
+  return [...staticItems, ...dynamicItems.value];
 });
 
 onMounted(async () => {
@@ -176,7 +151,11 @@ onMounted(async () => {
   try {
     mainMenuStore.request_query_data.limit = 100;
     subMenuStore.request_query_data.limit = 200;
-    await Promise.all([mainMenuStore.GetListData(), subMenuStore.GetListData()]);
+    await Promise.all([
+      mainMenuStore.GetListData(),
+      subMenuStore.GetListData(),
+      permissionGuard.Load(),
+    ]);
     // stores swallow their own axios errors internally, so a null response
     // after the request settles means the fetch failed (not just "empty")
     if (!mainMenuStore.response_query_data || !subMenuStore.response_query_data) {

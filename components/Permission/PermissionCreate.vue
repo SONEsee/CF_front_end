@@ -1,10 +1,17 @@
 <script lang="ts" setup>
 import { UsePermissionStore } from "@/stores/permission";
+import { UseRoleStore } from "@/stores/role";
+import { UseSubMenuStore } from "@/stores/submenu";
 
 const store = UsePermissionStore();
+const roleStore = UseRoleStore();
+const submenuStore = UseSubMenuStore();
 const permission = UsePagePermission();
 const loading = computed(() => store.loading);
 const form = ref();
+
+const roleOptionsLoading = computed(() => roleStore.role_options_loading);
+const submenuOptionsLoading = computed(() => submenuStore.submenu_options_loading);
 
 const request = ref({
   role_id: null as number | null,
@@ -13,6 +20,11 @@ const request = ref({
   can_create: false,
   can_update: false,
   can_delete: false,
+});
+
+onMounted(() => {
+  roleStore.GetRoleOptions();
+  submenuStore.GetSubMenuOptions();
 });
 
 const submitForm = async () => {
@@ -46,26 +58,32 @@ const submitForm = async () => {
       <v-form v-else id="permission-create-form" ref="form" @submit.prevent="submitForm">
         <v-row>
           <v-col cols="12" md="6">
-            <label class="d-block mb-2">Role ID</label>
-            <v-text-field
+            <label class="d-block mb-2">ສິດການນຳໃຊ້ / Role</label>
+            <v-autocomplete
               v-model.number="request.role_id"
-              type="number"
-              :rules="[(v: number) => !!v || 'ກະລຸນາປ້ອນ Role ID']"
+              :items="roleStore.role_options"
+              :loading="roleOptionsLoading"
+              item-title="role_name"
+              item-value="id"
+              :rules="[(v: number) => !!v || 'ກະລຸນາເລືອກສິດການນຳໃຊ້']"
               density="compact"
               variant="outlined"
               hide-details="auto"
               class="mb-6"
-            ></v-text-field>
+            ></v-autocomplete>
 
-            <label class="d-block mb-2">Submenu ID</label>
-            <v-text-field
+            <label class="d-block mb-2">ເມນູຍ່ອຍ / Submenu</label>
+            <v-autocomplete
               v-model.number="request.submenu_id"
-              type="number"
-              :rules="[(v: number) => !!v || 'ກະລຸນາປ້ອນ Submenu ID']"
+              :items="submenuStore.submenu_options"
+              :loading="submenuOptionsLoading"
+              item-title="submenu_name"
+              item-value="id"
+              :rules="[(v: number) => !!v || 'ກະລຸນາເລືອກເມນູຍ່ອຍ']"
               density="compact"
               variant="outlined"
               hide-details="auto"
-            ></v-text-field>
+            ></v-autocomplete>
           </v-col>
 
           <v-col cols="12" md="6">

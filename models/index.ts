@@ -10,6 +10,7 @@ import * as RoleModel from "./role";
 import * as PermissionModel from "./permission";
 import * as MainMenuModel from "./mainmenu";
 import * as SubMenuModel from "./submenu";
+import * as ModuleModel from "./module";
 
 export {
   UserModel,
@@ -24,4 +25,5 @@ export {
   PermissionModel,
   MainMenuModel,
   SubMenuModel,
+  ModuleModel,
 };

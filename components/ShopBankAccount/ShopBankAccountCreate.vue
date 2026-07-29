@@ -1,10 +1,13 @@
 <script lang="ts" setup>
 import { UseShopBankAccountStore } from "@/stores/shopbankaccount";
+import { UseShopStore } from "@/stores/shop";
 
 const store = UseShopBankAccountStore();
+const shopStore = UseShopStore();
 const permission = UsePagePermission();
 const loading = computed(() => store.loading);
 const form = ref();
+const shopOptionsLoading = computed(() => shopStore.shop_options_loading);
 
 const request = ref({
   shop_id: null as number | null,
@@ -12,6 +15,10 @@ const request = ref({
   account_number: "",
   account_name: "",
   promptpay_id: "",
+});
+
+onMounted(() => {
+  shopStore.GetShopOptions();
 });
 
 const submitForm = async () => {
@@ -44,16 +51,19 @@ const submitForm = async () => {
       <v-form v-else id="shop-bank-account-create-form" ref="form" @submit.prevent="submitForm">
         <v-row>
           <v-col cols="12" md="4">
-            <label class="d-block mb-2">Shop ID</label>
-            <v-text-field
+            <label class="d-block mb-2">ຮ້ານຄ້າ / Shop</label>
+            <v-autocomplete
               v-model.number="request.shop_id"
-              type="number"
-              :rules="[(v: number) => !!v || 'ກະລຸນາປ້ອນ Shop ID']"
+              :items="shopStore.shop_options"
+              :loading="shopOptionsLoading"
+              item-title="shop_name"
+              item-value="id"
+              :rules="[(v: number) => !!v || 'ກະລຸນາເລືອກຮ້ານຄ້າ']"
               density="compact"
               variant="outlined"
               hide-details="auto"
               class="mb-6"
-            ></v-text-field>
+            ></v-autocomplete>
 
             <label class="d-block mb-2">ຊື່ທະນາຄານ / Bank name</label>
             <v-text-field

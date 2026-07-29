@@ -6,6 +6,9 @@ import { DefaultResponseModel } from "@/models/";
 import { UsePermissionGuardStore } from "@/stores/permissionGuard";
 import { UseShopStore } from "@/stores/shop";
 import { UseRoleStore } from "@/stores/role";
+import { UseSubMenuStore } from "@/stores/submenu";
+import { UseModuleStore } from "@/stores/module";
+import type { PermissionModel } from "@/models";
 
 // ໃຊ້ຜູກປຸ່ມ create/edit/delete ຂອງໜ້າ CRUD ໃສ່ສິດອະນຸຍາດ (permissions) ຂອງ role ປັດຈຸບັນ
 // submenuId ຖືກອ່ານຈາກ route.meta.submenuId ທີ່ກຳນົດຜ່ານ definePageMeta() ຂອງແຕ່ລະ page
@@ -73,6 +76,80 @@ export const UseRoleNameResolver = () => {
     roleOptions: computed(() => roleStore.role_options),
     loading: computed(() => roleStore.role_options_loading),
   };
+};
+
+// ໃຊ້ແປ module_id -> module_name ໃນຕາຕະລາງ/ຟອມໃດໆ (ດຶງ module_options ຄັ້ງດຽວ, ໃຊ້ຊ້ຳໄດ້ທຸກບ່ອນ)
+// ຄືກັນກັບ UseRoleNameResolver
+export const UseModuleNameResolver = () => {
+  const moduleStore = UseModuleStore();
+  if (!moduleStore.module_options_loaded && !moduleStore.module_options_loading) {
+    moduleStore.GetModuleOptions();
+  }
+
+  const moduleNameById = computed(() => {
+    const map = new Map<number, string>();
+    for (const module of moduleStore.module_options) {
+      map.set(module.id, module.module_name);
+    }
+    return map;
+  });
+
+  const moduleName = (moduleId: number | null | undefined) => {
+    if (!moduleId) return "-";
+    return moduleNameById.value.get(moduleId) ?? `#${moduleId}`;
+  };
+
+  return {
+    moduleName,
+    moduleOptions: computed(() => moduleStore.module_options),
+    loading: computed(() => moduleStore.module_options_loading),
+  };
+};
+
+// ໃຊ້ແປ submenu_id -> submenu_name ໃນຕາຕະລາງ/ຟອມໃດໆ (ດຶງ submenu_options ຄັ້ງດຽວ, ໃຊ້ຊ້ຳໄດ້ທຸກບ່ອນ)
+// ຄືກັນກັບ UseRoleNameResolver
+export const UseSubMenuNameResolver = () => {
+  const submenuStore = UseSubMenuStore();
+  if (!submenuStore.submenu_options_loaded && !submenuStore.submenu_options_loading) {
+    submenuStore.GetSubMenuOptions();
+  }
+
+  const submenuNameById = computed(() => {
+    const map = new Map<number, string>();
+    for (const submenu of submenuStore.submenu_options) {
+      map.set(submenu.id, submenu.submenu_name);
+    }
+    return map;
+  });
+
+  const submenuName = (submenuId: number | null | undefined) => {
+    if (!submenuId) return "-";
+    return submenuNameById.value.get(submenuId) ?? `#${submenuId}`;
+  };
+
+  return {
+    submenuName,
+    submenuOptions: computed(() => submenuStore.submenu_options),
+    loading: computed(() => submenuStore.submenu_options_loading),
+  };
+};
+
+// ໃຊ້ enrich ແຖວ Permission ດ້ວຍ role_name/submenu_name (ໃຊ້ຊ້ຳໄດ້ຫຼາຍບ່ອນ: PermissionList ແລະ ໜ້າອື່ນໆໃນອະນາຄົດ)
+export const UsePermissionTableRows = (
+  rows: Ref<PermissionModel.Permission[] | null | undefined>
+) => {
+  const { roleName } = UseRoleNameResolver();
+  const { submenuName } = UseSubMenuNameResolver();
+
+  const tableRows = computed(() =>
+    (rows.value ?? []).map((row) => ({
+      ...row,
+      role_name: roleName(row.role_id),
+      submenu_name: submenuName(row.submenu_id),
+    }))
+  );
+
+  return { tableRows };
 };
 
 // ດຶງ id ຂອງຜູ້ໃຊ້ທີ່ login ຢູ່ໃນປັດຈຸບັນ (ຈາກ localStorage) ໃຊ້ຝັງ user_id ຫຼັງບ້ານ

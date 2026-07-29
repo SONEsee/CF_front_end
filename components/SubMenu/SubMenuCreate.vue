@@ -7,15 +7,12 @@ const store = UseSubMenuStore();
 const mainMenuStore = UseMainMenuStore();
 const permission = UsePagePermission();
 
-const loading = computed(() => store.loading || mainMenuStore.loading);
+const loading = computed(() => store.loading);
 const form = ref();
+const mainMenuOptionsLoading = computed(() => mainMenuStore.main_menu_options_loading);
 
-// ດຶງ List ຂອງ Main Menu ມາໃຊ້ໃນ Dropdown
-const mainMenuItems = computed(() => mainMenuStore.response_query_data?.list_data ?? []);
-
-onMounted(async () => {
-  // Fetch ຂໍ້ມູນ Main Menu ມາໃສ່ Dropdown
-  await mainMenuStore.GetListData();
+onMounted(() => {
+  mainMenuStore.GetMainMenuOptions();
 });
 
 const request = ref({
@@ -56,7 +53,8 @@ const submitForm = async () => {
             <label class="d-block mb-2">ເລືອກເມນູຫຼັກ / Main Menu</label>
             <v-autocomplete
               v-model="request.main_menu_id"
-              :items="mainMenuItems"
+              :items="mainMenuStore.main_menu_options"
+              :loading="mainMenuOptionsLoading"
               item-title="menu_name"
               item-value="id"
               placeholder="-- ເລືອກເມນູຫຼັກ --"

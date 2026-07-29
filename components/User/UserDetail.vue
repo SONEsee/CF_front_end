@@ -1,15 +1,13 @@
 <script lang="ts" setup>
 import { useRoute } from "vue-router";
 import { UserStore } from "@/stores/user";
-import { UseRoleStore } from "@/stores/role";
-import { UseShopStore } from "@/stores/shop";
 
 const route = useRoute();
 const userStore = UserStore();
-const roleStore = UseRoleStore();
-const shopStore = UseShopStore();
 const permission = UsePagePermission();
 const title = ref("ລາຍລະອຽດຜູ້ໃຊ້ງານ");
+const { roleName: resolveRoleName } = UseRoleNameResolver();
+const { shopName: resolveShopName } = UseShopNameResolver();
 
 const userId = computed(() => route.query.id as string);
 const API_BASE_URL = import.meta.env.VITE_BASE_URL ?? "";
@@ -24,22 +22,9 @@ const detail = computed(() => userStore.response_detail_query_data as any);
 const localIsActive = ref(false); // ຄ່າ v-switch (sync ຈາກ detail ຫຼັງໂຫລດ, ອັບເດດເອງຕອນ toggle ສຳເລັດ)
 const toggling = ref(false);
 
-// ---- Role & Shop name lookup ----
-const roleName = computed(() => {
-  if (!detail.value?.role_id) return null;
-  const found = roleStore.response_query_data?.list_data.find(
-    (r) => r.id === detail.value.role_id
-  );
-  return found?.role_name ?? null;
-});
-
-const shopName = computed(() => {
-  if (!detail.value?.shop_id) return null;
-  const found = shopStore.response_query_data?.list_data.find(
-    (s) => s.id === detail.value.shop_id
-  );
-  return found?.shop_name ?? null;
-});
+// ---- Role & Shop name lookup (ໃຊ້ options-based resolver, ບໍ່ດຶງ paginated list) ----
+const roleName = computed(() => resolveRoleName(detail.value?.role_id));
+const shopName = computed(() => resolveShopName(detail.value?.shop_id));
 
 const loadUserDetail = async () => {
   if (!userId.value) return;
@@ -50,10 +35,11 @@ const loadUserDetail = async () => {
 };
 
 onMounted(async () => {
-  await Promise.all([roleStore.GetListData(), shopStore.GetListData(), loadUserDetail()]);
+  await loadUserDetail();
 });
 
-const onToggleStatus = async (value: boolean) => {
+const onToggleStatus = async (value: boolean | null) => {
+  value = !!value;
   if (!permission.value.can_update) {   
     localIsActive.value = !value;
     return;

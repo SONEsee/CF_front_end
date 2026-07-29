@@ -2,14 +2,19 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { UseShopBankAccountStore } from "@/stores/shopbankaccount";
+import { UseShopStore } from "@/stores/shop";
 
 const router = useRouter();
 const store = UseShopBankAccountStore();
+const shopStore = UseShopStore();
 const permission = UsePagePermission();
+const { shopName } = UseShopNameResolver();
 
 const response = computed(() => store.response_query_data);
+const shopOptionsLoading = computed(() => shopStore.shop_options_loading);
 
 onMounted(async () => {
+  shopStore.GetShopOptions();
   store.GetListData();
 });
 
@@ -25,9 +30,14 @@ async function onPageChange(page: number) {
   await store.GetListData();
 }
 
+async function onFilterChange() {
+  request.page = 1;
+  await store.GetListData();
+}
+
 const headers = ref([
   { title: "ລຳດັບ", key: "no", sortable: false },
-  { title: "Shop ID", key: "shop_id", sortable: false },
+  { title: "ຮ້ານຄ້າ", key: "shop_id", sortable: false },
   { title: "ທະນາຄານ", key: "bank_name", sortable: false },
   { title: "ເລກບັນຊີ", key: "account_number", sortable: false },
   { title: "ຊື່ບັນຊີ", key: "account_name", sortable: false },
@@ -43,6 +53,7 @@ const goPath = (path: string) => {
 
 const onsetinput = async (input: string | null) => {
   request.q = input ?? null;
+  request.page = 1;
   await store.GetListData();
 };
 </script>
@@ -63,7 +74,7 @@ const onsetinput = async (input: string | null) => {
           cols="12"
           class="d-flex flex-wrap justify-space-between align-center"
         >
-          <div class="d-flex flex-wrap">
+          <div class="d-flex flex-wrap ga-4 align-end">
             <div style="width: 280px">
               <GlobalDebounceEventTextField
                 :input="request.q"
@@ -71,7 +82,24 @@ const onsetinput = async (input: string | null) => {
                 @setinput="onsetinput"
               />
             </div>
-            <div class="ml-4 pt-6">
+
+            <div style="width: 240px">
+              <v-autocomplete
+                v-model.number="request.shop_id"
+                :items="shopStore.shop_options"
+                :loading="shopOptionsLoading"
+                item-title="shop_name"
+                item-value="id"
+                label="ຮ້ານຄ້າ"
+                clearable
+                density="compact"
+                variant="outlined"
+                hide-details
+                @update:model-value="onFilterChange"
+              ></v-autocomplete>
+            </div>
+
+            <div>
               <v-btn
                 color="primary"
                 flat
@@ -95,9 +123,14 @@ const onsetinput = async (input: string | null) => {
             :headers="headers"
             :items="response?.list_data ?? []"
             :loading="request.loading"
+            mobile-breakpoint="sm"
           >
             <template v-slot:item.no="{ index }">
               {{ index + 1 }}
+            </template>
+
+            <template v-slot:item.shop_id="{ item }">
+              {{ shopName(item.shop_id) }}
             </template>
 
             <template v-slot:item.is_active="{ item }">

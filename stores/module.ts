@@ -1,35 +1,54 @@
 import axios from "@/helpers/axios";
-import { ShopBankAccountModel } from "../models";
+import { ModuleModel } from "../models";
 import { CallSwal, goPath } from "~/composables/global";
 
-export const UseShopBankAccountStore = defineStore("shopbankaccount", {
+export const UseModuleStore = defineStore("module", {
   state() {
     return {
       loading: false,
-      response_query_data: null as ShopBankAccountModel.ShopBankAccountListResponse["items"] | null,
-      response_detail_query_data: null as ShopBankAccountModel.ShopBankAccount | null,
+      response_query_data: null as ModuleModel.ModuleListResponse["items"] | null,
+      response_detail_query_data: null as ModuleModel.Module | null,
       request_query_data: {
         q: null as string | null,
-        shop_id: null as number | null,
         limit: 20,
         page: 1,
         loading: false,
       },
+      module_options: [] as ModuleModel.ModuleOption[],
+      module_options_loading: false,
+      module_options_loaded: false,
     };
   },
   actions: {
+    async GetModuleOptions(force = false) {
+      if (this.module_options_loaded && !force) return;
+      this.module_options_loading = true;
+      try {
+        const res = await axios.get<ModuleModel.ModuleOptionsResponse>(
+          "/api/v1/module/module-options"
+        );
+        if (res.status === 200) {
+          this.module_options = res.data.items ?? [];
+          this.module_options_loaded = true;
+        }
+      } catch (error) {
+        console.error("Error fetching module options:", error);
+      } finally {
+        this.module_options_loading = false;
+      }
+    },
+
     async GetListData() {
       this.loading = true;
       this.request_query_data.loading = true;
       try {
-        const res = await axios.get<ShopBankAccountModel.ShopBankAccountListResponse>(
-          "/api/v1/shop-bank-account/bank-account",
+        const res = await axios.get<ModuleModel.ModuleListResponse>(
+          "/api/v1/module/module",
           {
             params: {
               page: this.request_query_data.page,
               limit: this.request_query_data.limit,
               q: this.request_query_data.q,
-              shop_id: this.request_query_data.shop_id,
             },
           }
         );
@@ -37,7 +56,7 @@ export const UseShopBankAccountStore = defineStore("shopbankaccount", {
           this.response_query_data = res.data.items;
         }
       } catch (error) {
-        console.error("Error fetching shop bank account data:", error);
+        console.error("Error fetching module data:", error);
       } finally {
         this.request_query_data.loading = false;
         this.loading = false;
@@ -47,33 +66,33 @@ export const UseShopBankAccountStore = defineStore("shopbankaccount", {
     async GetDetailData(id: string | number) {
       this.loading = true;
       try {
-        const res = await axios.get<ShopBankAccountModel.ShopBankAccountDetailResponse>(
-          "/api/v1/shop-bank-account/bank-account",
+        const res = await axios.get<ModuleModel.ModuleDetailResponse>(
+          "/api/v1/module/module",
           { params: { id } }
         );
         if (res.status === 200) {
           this.response_detail_query_data = res.data.items[0] ?? null;
         }
       } catch (error) {
-        console.error("Error fetching shop bank account detail:", error);
+        console.error("Error fetching module detail:", error);
       } finally {
         this.loading = false;
       }
     },
 
-    async CreateData(payload: ShopBankAccountModel.ShopBankAccountRequestBody) {
+    async CreateData(payload: ModuleModel.ModuleRequestBody) {
       this.loading = true;
       try {
-        const res = await axios.post("/api/v1/shop-bank-account/create", payload);
+        const res = await axios.post("/api/v1/module/create", payload);
         if (res.status === 200) {
           await CallSwal({
             icon: "success",
             title: "ສຳເລັດ",
-            text: "ເພີ່ມບັນຊີທະນາຄານສຳເລັດແລ້ວ",
+            text: "ເພີ່ມໂມດູນສຳເລັດແລ້ວ",
             timer: 1500,
             showConfirmButton: false,
           });
-          goPath("/shop-bank-account");
+          goPath("/module");
           return true;
         }
         return false;
@@ -81,7 +100,7 @@ export const UseShopBankAccountStore = defineStore("shopbankaccount", {
         await CallSwal({
           icon: "error",
           title: "ຜິດພາດ",
-          text: error.response?.data?.message ?? "ບໍ່ສາມາດເພີ່ມບັນຊີທະນາຄານໄດ້",
+          text: error.response?.data?.message ?? "ບໍ່ສາມາດເພີ່ມໂມດູນໄດ້",
         });
         return false;
       } finally {
@@ -89,10 +108,10 @@ export const UseShopBankAccountStore = defineStore("shopbankaccount", {
       }
     },
 
-    async UpdateData(id: string | number, payload: ShopBankAccountModel.ShopBankAccountPatchRequest) {
+    async UpdateData(id: string | number, payload: ModuleModel.ModulePatchRequest) {
       this.loading = true;
       try {
-        const res = await axios.patch(`/api/v1/shop-bank-account/bank-account/${id}/`, payload);
+        const res = await axios.patch(`/api/v1/module/module/${id}/`, payload);
         if (res.status === 200) {
           await CallSwal({
             icon: "success",
@@ -101,7 +120,7 @@ export const UseShopBankAccountStore = defineStore("shopbankaccount", {
             timer: 1500,
             showConfirmButton: false,
           });
-          goPath("/shop-bank-account");
+          goPath("/module");
           return true;
         }
         return false;
@@ -122,7 +141,7 @@ export const UseShopBankAccountStore = defineStore("shopbankaccount", {
         const notification = await CallSwal({
           icon: "warning",
           title: "ຄຳເຕືອນ",
-          text: "ທ່ານກຳລັງປິດການໃຊ້ງານບັນຊີທະນາຄານນີ້ ທ່ານແນ່ໃຈແລ້ວບໍ່?",
+          text: "ທ່ານກຳລັງລົບໂມດູນນີ້ ທ່ານແນ່ໃຈແລ້ວບໍ່?",
           showCancelButton: true,
           confirmButtonText: "ຕົກລົງ",
           cancelButtonText: "ຍົກເລີກ",
@@ -130,12 +149,12 @@ export const UseShopBankAccountStore = defineStore("shopbankaccount", {
         if (!notification.isConfirmed) return;
 
         this.loading = true;
-        const res = await axios.delete(`/api/v1/shop-bank-account/bank-account/${id}/`);
+        const res = await axios.delete(`/api/v1/module/module/${id}/`);
         if (res.status === 200) {
           await this.GetListData();
         }
       } catch (error) {
-        console.error("Error deactivating shop bank account:", error);
+        console.error("Error deleting module:", error);
       } finally {
         this.loading = false;
       }

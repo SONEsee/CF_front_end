@@ -2,18 +2,31 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { UsePermissionStore } from "@/stores/permission";
+import { UseRoleStore } from "@/stores/role";
+import { UseSubMenuStore } from "@/stores/submenu";
 
 const router = useRouter();
 const store = UsePermissionStore();
+const roleStore = UseRoleStore();
+const submenuStore = UseSubMenuStore();
 const permission = UsePagePermission();
 
 const response = computed(() => store.response_query_data);
+const { tableRows } = UsePermissionTableRows(
+  computed(() => response.value?.list_data),
+);
 
 onMounted(async () => {
+  roleStore.GetRoleOptions();
+  submenuStore.GetSubMenuOptions();
   store.GetListData();
 });
 
 const request = store.request_query_data;
+const roleOptionsLoading = computed(() => roleStore.role_options_loading);
+const submenuOptionsLoading = computed(
+  () => submenuStore.submenu_options_loading,
+);
 
 async function onSelectionChange(limit: number) {
   request.limit = limit;
@@ -25,26 +38,32 @@ async function onPageChange(page: number) {
   await store.GetListData();
 }
 
+async function onFilterChange() {
+  request.page = 1;
+  await store.GetListData();
+}
+
+const onsetinput = async (input: string | null) => {
+  request.q = input ?? null;
+  request.page = 1;
+  await store.GetListData();
+};
+
 const headers = ref([
   { title: "ລຳດັບ", key: "no", sortable: false },
-  { title: "Role ID", key: "role_id", sortable: false },
-  { title: "Submenu ID", key: "submenu_id", sortable: false },
+  { title: "ສິດການນຳໃຊ້", key: "role_name", sortable: false },
+  { title: "ເມນູຍ່ອຍ", key: "submenu_name", sortable: false },
   { title: "ເບິ່ງ", key: "can_view", sortable: false },
   { title: "ສ້າງ", key: "can_create", sortable: false },
   { title: "ແກ້ໄຂ", key: "can_update", sortable: false },
   { title: "ລົບ", key: "can_delete", sortable: false },
-  { title: "Actions", key: "actions", sortable: false },
+  { title: "ຈັດການ", key: "actions", sortable: false },
 ]);
 
 const formatNumber = (num: number) => new Intl.NumberFormat().format(num);
 
 const goPath = (path: string) => {
   router.push(path);
-};
-
-const onsetinput = async (input: string | null) => {
-  request.q = input ?? null;
-  await store.GetListData();
 };
 </script>
 
@@ -55,7 +74,7 @@ const onsetinput = async (input: string | null) => {
         <v-col cols="12">
           <GlobalTextTitleLine
             :title="`ຈັດການສິດອະນຸຍາດ / Manage Permission (${formatNumber(
-              response?.pagination?.total_items ?? 0
+              response?.pagination?.total_items ?? 0,
             )})`"
           />
         </v-col>
@@ -64,27 +83,56 @@ const onsetinput = async (input: string | null) => {
           cols="12"
           class="d-flex flex-wrap justify-space-between align-center"
         >
-          <div class="d-flex flex-wrap">
-            <div style="width: 280px">
+          <div class="d-flex flex-wrap ga-4 align-end">
+            <div style="width: 240px">
               <GlobalDebounceEventTextField
                 :input="request.q"
                 :label="'ຄົ້ນຫາ'"
                 @setinput="onsetinput"
+                hide-details
               />
             </div>
-            <div class="ml-4 pt-6">
-              <v-btn
-                color="primary"
-                flat
-                :loading="request.loading"
-                @click="store.GetListData()"
-                >ຄົ້ນຫາ</v-btn
-              >
+            <div style="width: 240px">
+              <v-autocomplete
+                v-model.number="request.role_id"
+                :items="roleStore.role_options"
+                :loading="roleOptionsLoading"
+                item-title="role_name"
+                item-value="id"
+                label="ສິດການນຳໃຊ້"
+                clearable
+                density="compact"
+                variant="outlined"
+                hide-details
+                @update:model-value="onFilterChange"
+              ></v-autocomplete>
+            </div>
+            <div style="width: 240px">
+              <v-autocomplete
+                v-model.number="request.submenu_id"
+                :items="submenuStore.submenu_options"
+                :loading="submenuOptionsLoading"
+                item-title="submenu_name"
+                item-value="id"
+                label="ເມນູຍ່ອຍ"
+                clearable
+                density="compact"
+                variant="outlined"
+                hide-details
+                @update:model-value="onFilterChange"
+              ></v-autocomplete>
             </div>
           </div>
 
-          <div v-if="permission.can_create" class="d-flex flex-wrap align-center">
-            <v-btn color="primary" elevation="0" @click="goPath('/permission/create')">
+          <div
+            v-if="permission.can_create"
+            class="d-flex flex-wrap align-center"
+          >
+            <v-btn
+              color="primary"
+              elevation="0"
+              @click="goPath('/permission/create')"
+            >
               <v-icon class="mr-2"> mdi-plus</v-icon>
               ເພີ່ມສິດອະນຸຍາດ
             </v-btn>
@@ -94,24 +142,33 @@ const onsetinput = async (input: string | null) => {
         <v-col cols="12">
           <v-data-table
             :headers="headers"
-            :items="response?.list_data ?? []"
+            :items="tableRows"
             :loading="request.loading"
+            mobile-breakpoint="sm"
           >
             <template v-slot:item.no="{ index }">
               {{ index + 1 }}
             </template>
 
             <template v-slot:item.can_view="{ item }">
-              <v-icon :color="item.can_view ? 'success' : 'error'">{{ item.can_view ? 'mdi-check' : 'mdi-close' }}</v-icon>
+              <v-icon :color="item.can_view ? 'success' : 'error'">{{
+                item.can_view ? "mdi-check" : "mdi-close"
+              }}</v-icon>
             </template>
             <template v-slot:item.can_create="{ item }">
-              <v-icon :color="item.can_create ? 'success' : 'error'">{{ item.can_create ? 'mdi-check' : 'mdi-close' }}</v-icon>
+              <v-icon :color="item.can_create ? 'success' : 'error'">{{
+                item.can_create ? "mdi-check" : "mdi-close"
+              }}</v-icon>
             </template>
             <template v-slot:item.can_update="{ item }">
-              <v-icon :color="item.can_update ? 'success' : 'error'">{{ item.can_update ? 'mdi-check' : 'mdi-close' }}</v-icon>
+              <v-icon :color="item.can_update ? 'success' : 'error'">{{
+                item.can_update ? "mdi-check" : "mdi-close"
+              }}</v-icon>
             </template>
             <template v-slot:item.can_delete="{ item }">
-              <v-icon :color="item.can_delete ? 'success' : 'error'">{{ item.can_delete ? 'mdi-check' : 'mdi-close' }}</v-icon>
+              <v-icon :color="item.can_delete ? 'success' : 'error'">{{
+                item.can_delete ? "mdi-check" : "mdi-close"
+              }}</v-icon>
             </template>
 
             <template v-slot:item.actions="{ item }">
