@@ -8,11 +8,7 @@ import { UseSubMenuStore } from "@/stores/submenu";
 const router = useRouter();
 const store = UsePermissionStore();
 const roleStore = UseRoleStore();
-<<<<<<< HEAD
-const subMenuStore = UseSubMenuStore();
-=======
 const submenuStore = UseSubMenuStore();
->>>>>>> origin/main
 const permission = UsePagePermission();
 
 const response = computed(() => store.response_query_data);
