@@ -46,3 +46,4 @@ export interface PermissionDetailResponse {
   message: string;
   items: Permission[];
 }
+

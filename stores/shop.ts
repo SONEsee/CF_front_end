@@ -20,12 +20,13 @@ export const UseShopStore = defineStore("shop", {
     };
   },
   actions: {
-   
-    async GetShopOptions(force = false) {
-      if (this.shop_options_loaded && !force) return;
+    async GetShopOptions(search?: string, force = false) {
+      if (this.shop_options_loaded && !force && !search) return;
       this.shop_options_loading = true;
       try {
-        const res = await axios.get<ShopModel.ShopOptionsResponse>("/api/v1/shop/shop-options");
+        const res = await axios.get<ShopModel.ShopOptionsResponse>("/api/v1/shop/shop-options", {
+          params: { search: search ?? "", q: search ?? "" }
+        });
         if (res.status === 200) {
           this.shop_options = res.data.items ?? [];
           this.shop_options_loaded = true;
@@ -45,7 +46,8 @@ export const UseShopStore = defineStore("shop", {
           params: {
             page: this.request_query_data.page,
             limit: this.request_query_data.limit,
-            q: this.request_query_data.q,
+            search: this.request_query_data.q, // ສົ່ງ parameter search
+            q: this.request_query_data.q,      // ສົ່ງ parameter q
           },
         });
         if (res.status === 200) {
@@ -132,24 +134,29 @@ export const UseShopStore = defineStore("shop", {
     },
 
     async UpdateStatus(id: string | number, status: ShopModel.ShopStatusRequest["status"]) {
+      this.loading = true;
       try {
-        const notification = await CallSwal({
-          icon: "warning",
-          title: "ຄຳເຕືອນ",
-          text: `ທ່ານກຳລັງປ່ຽນສະຖານະຮ້ານຄ້ານີ້ເປັນ ${status} ທ່ານແນ່ໃຈແລ້ວບໍ່?`,
-          showCancelButton: true,
-          confirmButtonText: "ຕົກລົງ",
-          cancelButtonText: "ຍົກເລີກ",
-        });
-        if (!notification.isConfirmed) return;
-
-        this.loading = true;
         const res = await axios.patch(`/api/v1/shop/shop/${id}/status`, { status });
         if (res.status === 200) {
+          await CallSwal({
+            icon: "success",
+            title: "ສຳເລັດ",
+            text: "ປ່ຽນສະຖານະຮ້ານຄ້າສຳເລັດແລ້ວ",
+            timer: 1500,
+            showConfirmButton: false,
+          });
           await this.GetListData();
+          return true;
         }
-      } catch (error) {
+        return false;
+      } catch (error: any) {
         console.error("Error updating shop status:", error);
+        await CallSwal({
+          icon: "error",
+          title: "ຜິດພາດ",
+          text: error.response?.data?.message ?? "ບໍ່ສາມາດປ່ຽນສະຖານະໄດ້",
+        });
+        return false;
       } finally {
         this.loading = false;
       }

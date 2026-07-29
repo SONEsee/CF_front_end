@@ -2,16 +2,31 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { UsePermissionStore } from "@/stores/permission";
+import { UseRoleStore } from "@/stores/role";
+import { UseSubMenuStore } from "@/stores/submenu";
 
 const router = useRouter();
 const store = UsePermissionStore();
+const roleStore = UseRoleStore();
+const subMenuStore = UseSubMenuStore();
 const permission = UsePagePermission();
 
 const response = computed(() => store.response_query_data);
 
 onMounted(async () => {
-  store.GetListData();
+  await Promise.all([
+    store.GetListData(),
+    roleStore.GetRoleOptions(),
+    subMenuStore.GetSubMenuOptions(),
+  ]);
 });
+
+function getRoleName(id: number) {
+  return roleStore.role_options.find((r) => r.id === id)?.role_name ?? "-"; 
+}
+function getSubMenuName(id: number) {
+  return subMenuStore.submenu_options.find((s) => s.id === id)?.submenu_name ?? "-"; 
+}
 
 const request = store.request_query_data;
 
@@ -27,8 +42,8 @@ async function onPageChange(page: number) {
 
 const headers = ref([
   { title: "ລຳດັບ", key: "no", sortable: false },
-  { title: "Role ID", key: "role_id", sortable: false },
-  { title: "Submenu ID", key: "submenu_id", sortable: false },
+  { title: "ສິດ (Role)", key: "role_id", sortable: false },
+  { title: "ເມນູຍ່ອຍ", key: "submenu_id", sortable: false },
   { title: "ເບິ່ງ", key: "can_view", sortable: false },
   { title: "ສ້າງ", key: "can_create", sortable: false },
   { title: "ແກ້ໄຂ", key: "can_update", sortable: false },
@@ -72,7 +87,7 @@ const onsetinput = async (input: string | null) => {
                 @setinput="onsetinput"
               />
             </div>
-            <div class="ml-4 pt-6">
+            <div class="ml-4 pt-9">
               <v-btn
                 color="primary"
                 flat
@@ -99,6 +114,14 @@ const onsetinput = async (input: string | null) => {
           >
             <template v-slot:item.no="{ index }">
               {{ index + 1 }}
+            </template>
+
+            <template v-slot:item.role_id="{ item }">
+              {{ getRoleName(item.role_id) }}
+            </template>
+
+            <template v-slot:item.submenu_id="{ item }">
+              {{ getSubMenuName(item.submenu_id) }}
             </template>
 
             <template v-slot:item.can_view="{ item }">

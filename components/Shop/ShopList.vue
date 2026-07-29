@@ -41,8 +41,9 @@ const goPath = (path: string) => {
   router.push(path);
 };
 
+// ຈັດການກັບການຄົ້ນຫາ (ເມື່ອພິມ ຫຼື ລຶບຄ່າຄົ້ນຫາ)
 const onsetinput = async (input: string | null) => {
-  request.q = input ?? null;
+  request.q = input && input.trim() !== "" ? input.trim() : null;
   request.page = 1;
   await shopStore.GetListData();
 };
@@ -61,6 +62,7 @@ const statusConfig = (status: string) => {
 };
 
 const isConfirmDialog = ref(false);
+const isSubmittingStatus = ref(false);
 const selectedItem = ref<any>(null);
 
 const openConfirmDialog = (item: any) => {
@@ -70,8 +72,12 @@ const openConfirmDialog = (item: any) => {
 
 const confirmChangeStatus = async () => {
   if (!selectedItem.value) return;
+  isSubmittingStatus.value = true;
   const newStatus = selectedItem.value.status === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
+  
   await shopStore.UpdateStatus(selectedItem.value.id, newStatus);
+  
+  isSubmittingStatus.value = false;
   isConfirmDialog.value = false;
   selectedItem.value = null;
 };
@@ -90,7 +96,6 @@ const confirmChangeStatus = async () => {
           />
         </v-col>
 
-       
         <v-col cols="12" class="d-flex flex-column flex-md-row flex-wrap justify-space-between align-stretch align-md-center ga-4 py-2">
           <div class="d-flex flex-column flex-sm-row flex-nowrap ga-3" style="min-width: 300px;">
             <div class="w-100" style="max-width: 300px">
@@ -104,9 +109,8 @@ const confirmChangeStatus = async () => {
               <v-btn
                 class="w-100 w-sm-auto"
                 color="primary"
-                
                 :loading="request.loading"
-                @click="shopStore.GetListData()"
+                @click="onsetinput(request.q)"
               >
                 <v-icon start>mdi-magnify</v-icon>
                 ຄົ້ນຫາ
@@ -115,7 +119,7 @@ const confirmChangeStatus = async () => {
           </div>
 
           <div v-if="permission.can_create" class="d-flex">
-            <v-btn class="w-100 w-md-auto" color="primary"  @click="goPath('/shop/create')">
+            <v-btn class="w-100 w-md-auto" color="primary" @click="goPath('/shop/create')">
               <v-icon start> mdi-plus </v-icon>
               ເພີ່ມຮ້ານຄ້າ
             </v-btn>
@@ -126,9 +130,7 @@ const confirmChangeStatus = async () => {
           <v-divider></v-divider>
         </v-col>
 
-    
         <v-col cols="12" class="mt-2">
-          
           <v-data-table
             class="text-no-wrap"
             :headers="headers"
@@ -243,7 +245,7 @@ const confirmChangeStatus = async () => {
             </template>
           </v-data-table>
         </v-col>
-      </v-row>
+      </v-row> <!-- ແກ້ໄຂຈາກ </row> ເປັນ </v-row> -->
     </v-card>
 
     <!-- Dialog ສຳລັບການຢືນຢັນການປ່ຽນສະຖານະ -->
@@ -254,7 +256,7 @@ const confirmChangeStatus = async () => {
           ຢືນຢັນການປ່ຽນສະຖານະ
         </v-card-title>
         <v-card-text class="text-body-1 pt-2">
-          ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອນການປ່ຽນສະຖານະຂອງຮ້ານ 
+          ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການປ່ຽນສະຖານະຂອງຮ້ານ 
           <span class="font-weight-bold text-primary">"{{ selectedItem?.shop_name }}"</span> 
           ເປັນ 
           <span class="font-weight-bold" :class="selectedItem?.status === 'ACTIVE' ? 'text-red-darken-2' : 'text-green-darken-2'">
@@ -263,18 +265,19 @@ const confirmChangeStatus = async () => {
         </v-card-text>
         <v-card-actions class="pa-4">
           <v-spacer></v-spacer>
-          <v-btn color="grey-darken-1" variant="text" @click="isConfirmDialog = false">
+          <v-btn color="grey-darken-1" variant="text" :disabled="isSubmittingStatus" @click="isConfirmDialog = false">
             ຍົກເລີກ
           </v-btn>
           <v-btn 
             color="primary" 
             variant="tonal"
+            :loading="isSubmittingStatus"
             @click="confirmChangeStatus"
           >
             ຢືນຢັນ
           </v-btn>
         </v-card-actions>
-      </v-card>
+      </v-card> <!-- ແກ້ໄຂຈາກ </v-dialog> ເປັນ </v-card> -->
     </v-dialog>
   </div>
 </template>

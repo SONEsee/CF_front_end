@@ -84,7 +84,7 @@ const onDelete = async (id: number) => {
                 @setinput="onsetinput"
               />
             </div>
-            <div class="ml-4 pt-6">
+            <div class="ml-4 pt-7">
               <v-btn
                 class="mt-2"
                 color="primary"
