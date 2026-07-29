@@ -57,3 +57,19 @@ export interface ProductVariantDetailResponse {
   message: string;
   items: ProductVariant[];
 }
+
+// ໃຊ້ໃນ order create picker — ຄົ້ນຫາ variant ຂ້າມ product ພາຍໃນຮ້ານດຽວ
+export interface ProductVariantOption {
+  id: number;
+  product_name: string;
+  variant_name: string;
+  sku_code: string;
+  price: number;
+}
+
+export interface ProductVariantOptionsResponse {
+  timestamp: string;
+  status: number;
+  message: string;
+  items: ProductVariantOption[];
+}
