@@ -15,6 +15,8 @@ import * as SubMenuModel from "./submenu";
 import * as ModuleModel from "./module";
 import * as SubscriptionPlanModel from "./subscriptionPlan";
 import * as ShopSubscriptionModel from "./shopSubscription";
+import * as CustomerModel from "./customer";
+import * as CustomerAddressModel from "./customerAddress";
 
 export {
   UserModel,
@@ -34,4 +36,6 @@ export {
   ModuleModel,
   SubscriptionPlanModel,
   ShopSubscriptionModel,
+  CustomerModel,
+  CustomerAddressModel,
 };
