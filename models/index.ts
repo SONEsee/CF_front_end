@@ -17,6 +17,12 @@ import * as SubscriptionPlanModel from "./subscriptionPlan";
 import * as ShopSubscriptionModel from "./shopSubscription";
 import * as CustomerModel from "./customer";
 import * as CustomerAddressModel from "./customerAddress";
+import * as DiscountModel from "./discount";
+import * as OrderModel from "./order";
+import * as OrderItemModel from "./orderItem";
+import * as PaymentModel from "./payment";
+import * as ShipmentModel from "./shipment";
+import * as RefundModel from "./refund";
 
 export {
   UserModel,
@@ -38,4 +44,10 @@ export {
   ShopSubscriptionModel,
   CustomerModel,
   CustomerAddressModel,
+  DiscountModel,
+  OrderModel,
+  OrderItemModel,
+  PaymentModel,
+  ShipmentModel,
+  RefundModel,
 };

@@ -13,9 +13,29 @@ export const UseProductVariantStore = defineStore("productVariant", {
         page: 1,
         loading: false,
       },
+      variant_options: [] as ProductVariantModel.ProductVariantOption[],
+      variant_options_loading: false,
     };
   },
   actions: {
+    // ຄົ້ນຫາ variant ຂ້າມ product ພາຍໃນຮ້ານດຽວ — ໃຊ້ໃນ order create picker
+    async GetVariantOptionsByShop(shopId: number, q?: string) {
+      this.variant_options_loading = true;
+      try {
+        const res = await axios.get<ProductVariantModel.ProductVariantOptionsResponse>(
+          "/api/v1/product-variant/options",
+          { params: { shop_id: shopId, q: q || undefined } }
+        );
+        if (res.status === 200) {
+          this.variant_options = res.data.items ?? [];
+        }
+      } catch (error) {
+        console.error("Error fetching product variant options:", error);
+      } finally {
+        this.variant_options_loading = false;
+      }
+    },
+
     async GetListData() {
       if (!this.request_query_data.product_id) return;
       this.loading = true;
