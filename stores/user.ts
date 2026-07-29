@@ -111,12 +111,10 @@ export const UserStore = defineStore("user", {
       }
     },
 
-    async UpdateData(id: string | number, payload: FormData) {
+    async UpdateData(id: string | number, payload: UserModel.UserRequestBodyPatch) {
       this.loading = true;
       try {
-        const res = await axios.patch(`/api/v1/users/user-update/${id}`, payload, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        const res = await axios.patch(`/api/v1/users/user-update/${id}`, payload);
         if (res.status === 200) {
           await CallSwal({
             icon: "success",

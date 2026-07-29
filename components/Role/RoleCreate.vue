@@ -33,14 +33,16 @@ onMounted(() => {
   <section class="pa-6">
     <v-card elevation="0" class="pa-6">
       <GlobalTextTitleLine title="ເພີ່ມສິດການນຳໃຊ້" class="mb-8">
-        <template #actions>
+        <template v-if="permission.can_create" #actions>
           <v-btn color="primary" flat type="submit" form="role-create-form" :loading="loading"
             >ບັນທຶກ</v-btn
           >
         </template>
       </GlobalTextTitleLine>
 
-      <v-form id="role-create-form" ref="form" @submit.prevent="submitForm">
+      <GlobalPermissionDenied v-if="!permission.can_create" />
+
+      <v-form v-else id="role-create-form" ref="form" @submit.prevent="submitForm">
         <v-row>
           <v-col cols="12" md="6">
             <label class="d-block mb-2">ຊື່ສິດການນຳໃຊ້ / Role name</label>

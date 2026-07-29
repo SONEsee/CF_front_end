@@ -1,13 +1,16 @@
 <script lang="ts" setup>
 import { useRoute } from "vue-router";
 import { UseMainMenuStore } from "@/stores/mainmenu";
+import { UseModuleStore } from "@/stores/module";
 
 const route = useRoute();
 const id = route.query.id as string;
 const store = UseMainMenuStore();
+const moduleStore = UseModuleStore();
 const permission = UsePagePermission();
 const loading = computed(() => store.loading);
 const form = ref();
+const moduleOptionsLoading = computed(() => moduleStore.module_options_loading);
 
 const request = ref({
   module_id: null as number | null,
@@ -16,6 +19,8 @@ const request = ref({
 });
 
 onMounted(async () => {
+  moduleStore.GetModuleOptions();
+
   await store.GetDetailData(id);
   const menu = store.response_detail_query_data;
   if (menu) {
@@ -54,14 +59,18 @@ const submitForm = async () => {
       <v-form v-else id="main-menu-edit-form" ref="form" @submit.prevent="submitForm">
         <v-row>
           <v-col cols="12" md="4">
-            <label class="d-block mb-2">Module ID</label>
-            <v-text-field
+            <label class="d-block mb-2">ໂມດູນ / Module</label>
+            <v-autocomplete
               v-model.number="request.module_id"
-              type="number"
+              :items="moduleStore.module_options"
+              :loading="moduleOptionsLoading"
+              item-title="module_name"
+              item-value="id"
+              :rules="[(v: number) => !!v || 'ກະລຸນາເລືອກໂມດູນ']"
               density="compact"
               variant="outlined"
               hide-details="auto"
-            ></v-text-field>
+            ></v-autocomplete>
           </v-col>
 
           <v-col cols="12" md="4">

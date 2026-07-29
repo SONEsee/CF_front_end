@@ -2,14 +2,19 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { UseMainMenuStore } from "@/stores/mainmenu";
+import { UseModuleStore } from "@/stores/module";
 
 const router = useRouter();
 const store = UseMainMenuStore();
+const moduleStore = UseModuleStore();
 const permission = UsePagePermission();
+const { moduleName } = UseModuleNameResolver();
 
 const response = computed(() => store.response_query_data);
+const moduleOptionsLoading = computed(() => moduleStore.module_options_loading);
 
 onMounted(async () => {
+  moduleStore.GetModuleOptions();
   store.GetListData();
 });
 
@@ -25,9 +30,14 @@ async function onPageChange(page: number) {
   await store.GetListData();
 }
 
+async function onFilterChange() {
+  request.page = 1;
+  await store.GetListData();
+}
+
 const headers = ref([
   { title: "ລຳດັບ", key: "no", sortable: false },
-  { title: "Module ID", key: "module_id", sortable: false },
+  { title: "ໂມດູນ", key: "module_id", sortable: false },
   { title: "ຊື່ເມນູ", key: "menu_name", sortable: false },
   { title: "Icon", key: "icon_class", sortable: false },
   { title: "Actions", key: "actions", sortable: false },
@@ -41,6 +51,7 @@ const goPath = (path: string) => {
 
 const onsetinput = async (input: string | null) => {
   request.q = input ?? null;
+  request.page = 1;
   await store.GetListData();
 };
 </script>
@@ -61,7 +72,7 @@ const onsetinput = async (input: string | null) => {
           cols="12"
           class="d-flex flex-wrap justify-space-between align-center"
         >
-          <div class="d-flex flex-wrap">
+          <div class="d-flex flex-wrap ga-4 align-end">
             <div style="width: 280px">
               <GlobalDebounceEventTextField
                 :input="request.q"
@@ -69,7 +80,24 @@ const onsetinput = async (input: string | null) => {
                 @setinput="onsetinput"
               />
             </div>
-            <div class="ml-4 d-flex flex-wrap align-end">
+
+            <div style="width: 240px">
+              <v-autocomplete
+                v-model.number="request.module_id"
+                :items="moduleStore.module_options"
+                :loading="moduleOptionsLoading"
+                item-title="module_name"
+                item-value="id"
+                label="ໂມດູນ"
+                clearable
+                density="compact"
+                variant="outlined"
+                hide-details
+                @update:model-value="onFilterChange"
+              ></v-autocomplete>
+            </div>
+
+            <div>
               <v-btn
                 color="primary"
                 flat
@@ -93,9 +121,14 @@ const onsetinput = async (input: string | null) => {
             :headers="headers"
             :items="response?.list_data ?? []"
             :loading="request.loading"
+            mobile-breakpoint="sm"
           >
             <template v-slot:item.no="{ index }">
               {{ index + 1 }}
+            </template>
+
+            <template v-slot:item.module_id="{ item }">
+              {{ moduleName(item.module_id) }}
             </template>
 
             <template v-slot:item.actions="{ item }">

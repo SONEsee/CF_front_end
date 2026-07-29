@@ -39,3 +39,16 @@ export interface MainMenuDetailResponse {
   message: string;
   items: MainMenu[];
 }
+
+export interface MainMenuOption {
+  id: number;
+  menu_name: string;
+}
+
+// /api/v1/main/main-menu-options — ບໍ່ມີ pagination, ໃຊ້ສຳລັບ dropdown/autocomplete
+export interface MainMenuOptionsResponse {
+  timestamp: string;
+  status: number;
+  message: string;
+  items: MainMenuOption[];
+}

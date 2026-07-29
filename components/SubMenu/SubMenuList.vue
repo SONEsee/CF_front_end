@@ -2,15 +2,19 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { UseSubMenuStore } from "@/stores/submenu";
+import { UseMainMenuStore } from "@/stores/mainmenu";
 
 const router = useRouter();
 const store = UseSubMenuStore();
+const mainMenuStore = UseMainMenuStore();
 const permission = UsePagePermission();
 
 const response = computed(() => store.response_query_data);
 const request = store.request_query_data;
+const mainMenuOptionsLoading = computed(() => mainMenuStore.main_menu_options_loading);
 
 onMounted(async () => {
+  mainMenuStore.GetMainMenuOptions();
   await store.GetListData();
 });
 
@@ -34,9 +38,14 @@ const onsetinput = async (input: string | null) => {
 
 // 🟢 Function ເມື່ອກົດປຸ່ມ "ຄົ້ນຫາ"
 const onSearch = async () => {
-  request.page = 1; // 🟢 Reset ໜ້າກັບໄປ 1 
+  request.page = 1; // 🟢 Reset ໜ້າກັບໄປ 1
   await store.GetListData();
 };
+
+async function onFilterChange() {
+  request.page = 1;
+  await store.GetListData();
+}
 
 const headers = ref([
   { title: "ລຳດັບ", key: "no", sortable: false },
@@ -69,7 +78,7 @@ const goPath = (path: string) => {
           cols="12"
           class="d-flex flex-wrap justify-space-between align-center"
         >
-          <div class="d-flex flex-wrap">
+          <div class="d-flex flex-wrap ga-4 align-end">
             <div style="width: 240px">
               <!-- Textfield ສຳລັບຄົ້ນຫາແບບ Debounce -->
               <GlobalDebounceEventTextField
@@ -78,7 +87,24 @@ const goPath = (path: string) => {
                 @setinput="onsetinput"
               />
             </div>
-            <div class="pl-5 d-flex flex-wrap align-end">
+
+            <div style="width: 240px">
+              <v-autocomplete
+                v-model.number="request.main_menu_id"
+                :items="mainMenuStore.main_menu_options"
+                :loading="mainMenuOptionsLoading"
+                item-title="menu_name"
+                item-value="id"
+                label="ເມນູຫຼັກ"
+                clearable
+                density="compact"
+                variant="outlined"
+                hide-details
+                @update:model-value="onFilterChange"
+              ></v-autocomplete>
+            </div>
+
+            <div>
               <v-btn
                 color="primary"
                 flat
@@ -102,6 +128,7 @@ const goPath = (path: string) => {
             :headers="headers"
             :items="response?.list_data ?? []"
             :loading="request.loading"
+            mobile-breakpoint="sm"
           >
             <!-- ຄິດໄລ່ລຳດັບ (No.) ຕາມ Pagination -->
             <template v-slot:item.no="{ index }">

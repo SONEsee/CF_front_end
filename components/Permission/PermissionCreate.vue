@@ -5,18 +5,9 @@ import { UseRoleStore } from "@/stores/role";
 import { UseSubMenuStore } from "@/stores/submenu";
 
 const store = UsePermissionStore();
-const roleStore = UseRoleStore();
-const subMenuStore = UseSubMenuStore();
 const permission = UsePagePermission();
 const loading = computed(() => store.loading);
 const form = ref();
-
-onMounted(async () => {
-  await Promise.all([
-    roleStore.GetRoleOptions(),
-    subMenuStore.GetSubMenuOptions(),
-  ]);
-});
 
 const request = ref({
   role_id: null as number | null,
@@ -25,6 +16,11 @@ const request = ref({
   can_create: false,
   can_update: false,
   can_delete: false,
+});
+
+onMounted(() => {
+  roleStore.GetRoleOptions();
+  submenuStore.GetSubMenuOptions();
 });
 
 const submitForm = async () => {
@@ -58,34 +54,26 @@ const submitForm = async () => {
       <v-form v-else id="permission-create-form" ref="form" @submit.prevent="submitForm">
         <v-row>
           <v-col cols="12" md="6">
-            <label class="d-block mb-2">ສິດ (Role)</label>
-            <v-select
-              v-model="request.role_id"
-              :items="roleStore.role_options"
-              item-title="role_name"
-              item-value="id"
-              :loading="roleStore.role_options_loading"
-              :rules="[(v: number) => !!v || 'ກະລຸນາເລືອກ Role']"
+            <label class="d-block mb-2">Role ID</label>
+            <v-text-field
+              v-model.number="request.role_id"
+              type="number"
+              :rules="[(v: number) => !!v || 'ກະລຸນາປ້ອນ Role ID']"
               density="compact"
               variant="outlined"
               hide-details="auto"
               class="mb-6"
-              placeholder="ເລືອກ Role"
-            ></v-select>
+            ></v-text-field>
 
-            <label class="d-block mb-2">ເມນູຍ່ອຍ (Sub Menu)</label>
-            <v-select
-              v-model="request.submenu_id"
-              :items="subMenuStore.submenu_options"
-              item-title="submenu_name"
-              item-value="id"
-              :loading="subMenuStore.submenu_options_loading"
-              :rules="[(v: number) => !!v || 'ກະລຸນາເລືອກ Sub Menu']"
+            <label class="d-block mb-2">Submenu ID</label>
+            <v-text-field
+              v-model.number="request.submenu_id"
+              type="number"
+              :rules="[(v: number) => !!v || 'ກະລຸນາປ້ອນ Submenu ID']"
               density="compact"
               variant="outlined"
               hide-details="auto"
-              placeholder="ເລືອກ Sub Menu"
-            ></v-select>
+            ></v-text-field>
           </v-col>
 
           <v-col cols="12" md="6">

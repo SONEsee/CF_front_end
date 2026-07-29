@@ -1,17 +1,22 @@
 <script lang="ts" setup>
 import { UseShopSettingStore } from "@/stores/shopsetting";
 import { UserStore } from "@/stores/user";
+import { UseShopStore } from "@/stores/shop";
 
 const shopSettingStore = UseShopSettingStore();
 const userStore = UserStore();
+const shopStore = UseShopStore();
 const permission = UsePagePermission();
 const loading = computed(() => shopSettingStore.loading);
 const form = ref();
 const shopIdInput = ref<number | null>(null);
 const loaded = ref(false);
+const shopOptionsLoading = computed(() => shopStore.shop_options_loading);
 
 // ດຶງ shop_id ຂອງຮ້ານທີ່ຜູ້ໃຊ້ທີ່ login ຢູ່ສັງກັດ ມາໃສ່ໃຫ້ອັດຕະໂນມັດ (ບໍ່ໃຫ້ຕ້ອງພິມເອງ)
 onMounted(async () => {
+  shopStore.GetShopOptions();
+
   const currentUserId = GetCurrentUserId();
   if (!currentUserId) return;
   await userStore.GetDetailData(currentUserId);
@@ -31,6 +36,9 @@ const businessHoursRule = (v: string) => {
     return "ຮູບແບບ JSON ບໍ່ຖືກຕ້ອງ";
   }
 };
+
+// ເບິ່ງ vs ແກ້ໄຂ ແມ່ນສິດຄົນລະອັນ — can_view ຄວບຄຸມການສະແດງຂໍ້ມູນ, canSubmit ຄວບຄຸມການແກ້ໄຂ/ບັນທຶກ
+const canView = computed(() => permission.value.can_view);
 
 // upsert: create-or-update, so the needed permission depends on whether the row already exists
 const canSubmit = computed(() =>
@@ -61,6 +69,7 @@ const loadSetting = async () => {
 
 const submitForm = async () => {
   if (!shopIdInput.value) return;
+  if (!canSubmit.value) return;
   const { valid } = await form.value.validate();
   if (!valid) return;
 
@@ -85,20 +94,23 @@ const submitForm = async () => {
       </GlobalTextTitleLine>
 
       <div class="d-flex flex-wrap align-end ga-4" :class="loaded ? 'mb-8' : ''" style="max-width: 360px">
-        <v-text-field
+        <v-autocomplete
           v-model.number="shopIdInput"
-          type="number"
-          label="Shop ID"
+          :items="shopStore.shop_options"
+          :loading="shopOptionsLoading"
+          item-title="shop_name"
+          item-value="id"
+          label="ຮ້ານຄ້າ / Shop"
           density="compact"
           variant="outlined"
           hide-details="auto"
-        ></v-text-field>
+        ></v-autocomplete>
         <v-btn color="primary" :loading="loading" @click="loadSetting">ໂຫລດ</v-btn>
       </div>
 
       <v-divider v-if="loaded" class="mb-8"></v-divider>
 
-      <GlobalPermissionDenied v-if="loaded && !canSubmit" />
+      <GlobalPermissionDenied v-if="loaded && !canView" />
 
       <v-form v-else-if="loaded" id="shop-setting-form" ref="form" @submit.prevent="submitForm">
         <v-row>
@@ -108,6 +120,7 @@ const submitForm = async () => {
               v-model="request.currency"
               placeholder="LAK"
               maxlength="3"
+              :readonly="!canSubmit"
               density="compact"
               variant="outlined"
               hide-details="auto"
@@ -121,6 +134,7 @@ const submitForm = async () => {
               step="0.01"
               min="0"
               max="999.99"
+              :readonly="!canSubmit"
               :rules="[(v: number) => v <= 999.99 || 'ຄ່າສູງສຸດແມ່ນ 999.99']"
               density="compact"
               variant="outlined"
@@ -132,6 +146,7 @@ const submitForm = async () => {
             <label class="d-block mb-2">ຂໍ້ຄວາມຕອບກັບອັດຕະໂນມັດ / Auto reply message</label>
             <v-textarea
               v-model="request.auto_reply_msg"
+              :readonly="!canSubmit"
               density="compact"
               variant="outlined"
               hide-details="auto"
@@ -143,6 +158,7 @@ const submitForm = async () => {
             <v-textarea
               v-model="request.business_hours"
               placeholder='{"mon-fri":"08:00-18:00"}'
+              :readonly="!canSubmit"
               :rules="[businessHoursRule]"
               density="compact"
               variant="outlined"

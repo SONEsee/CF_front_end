@@ -1,17 +1,9 @@
 <script setup lang="ts">
 definePageMeta({
   middleware: ["auth"],
+  submenuId: 11,
 });
-
-
-
 </script>
-
 <template>
-    <section style="height: 100vh;" >
-        <div >
-             <Category/>
-            
-        </div>
-    </section>
+  <CategoryList />
 </template>

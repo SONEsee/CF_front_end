@@ -13,6 +13,7 @@ export interface SubMenuPatchRequest {
 export interface SubMenu {
   id: number;
   main_menu_id: number;
+  main_menu_name?: string;
   submenu_name: string;
   route_path: string;
 }
@@ -40,3 +41,18 @@ export interface SubMenuDetailResponse {
   items: SubMenu[];
 }
 
+<<<<<<< HEAD
+=======
+export interface SubMenuOption {
+  id: number;
+  submenu_name: string;
+}
+
+// /api/v1/sub/sub-menu-options — ບໍ່ມີ pagination, ໃຊ້ສຳລັບ dropdown/autocomplete
+export interface SubMenuOptionsResponse {
+  timestamp: string;
+  status: number;
+  message: string;
+  items: SubMenuOption[];
+}
+>>>>>>> origin/main

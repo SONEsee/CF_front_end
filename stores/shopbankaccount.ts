@@ -10,6 +10,7 @@ export const UseShopBankAccountStore = defineStore("shopbankaccount", {
       response_detail_query_data: null as ShopBankAccountModel.ShopBankAccount | null,
       request_query_data: {
         q: null as string | null,
+        shop_id: null as number | null,
         limit: 20,
         page: 1,
         loading: false,
@@ -28,6 +29,7 @@ export const UseShopBankAccountStore = defineStore("shopbankaccount", {
               page: this.request_query_data.page,
               limit: this.request_query_data.limit,
               q: this.request_query_data.q,
+              shop_id: this.request_query_data.shop_id,
             },
           }
         );

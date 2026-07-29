@@ -11,11 +11,12 @@ export const UseSubMenuStore = defineStore("submenu", {
       response_detail_query_data: null as SubMenuModel.SubMenu | null,
       request_query_data: {
         q: null as string | null,
+        main_menu_id: null as number | null,
         limit: 20,
         page: 1,
         loading: false,
       },
-      // 🟢 ສຳລັບ dropdown/mapping ຊື່ (ດຶງທັງໝົດ, ບໍ່ pagination)
+      // 🟢 ໃຊ້ SubMenu type ເລີຍ (ບໍ່ມີ endpoint options ແຍກ)
       submenu_options: [] as SubMenuModel.SubMenu[],
       submenu_options_loading: false,
       submenu_options_loaded: false,
@@ -36,7 +37,7 @@ export const UseSubMenuStore = defineStore("submenu", {
           this.submenu_options_loaded = true;
         }
       } catch (error) {
-        console.error("Error fetching submenu options:", error);
+        console.error("Error fetching sub menu options:", error);
       } finally {
         this.submenu_options_loading = false;
       }
@@ -53,6 +54,7 @@ export const UseSubMenuStore = defineStore("submenu", {
               page: this.request_query_data.page,
               limit: this.request_query_data.limit,
               q: this.request_query_data.q || undefined,
+              main_menu_id: this.request_query_data.main_menu_id,
             },
           }
         );
