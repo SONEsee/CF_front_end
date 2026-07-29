@@ -21,17 +21,9 @@ const { tableRows } = UsePermissionTableRows(
 );
 
 onMounted(async () => {
-<<<<<<< HEAD
-  await Promise.all([
-    store.GetListData(),
-    roleStore.GetRoleOptions(),
-    subMenuStore.GetSubMenuOptions(),
-  ]);
-=======
   roleStore.GetRoleOptions();
   submenuStore.GetSubMenuOptions();
   store.GetListData();
->>>>>>> origin/main
 });
 
 function getRoleName(id: number) {
