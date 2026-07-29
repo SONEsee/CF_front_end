@@ -1,9 +1,9 @@
-<script lang="ts" setup>
+<script setup lang="ts">
 definePageMeta({
   middleware: ["auth"],
-  submenuId: 12,
+  submenuId: 13,
 });
 </script>
 <template>
-  <ProductEdit />
+  <SubscriptionPlanEdit />
 </template>

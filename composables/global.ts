@@ -8,6 +8,7 @@ import { UseShopStore } from "@/stores/shop";
 import { UseRoleStore } from "@/stores/role";
 import { UseSubMenuStore } from "@/stores/submenu";
 import { UseModuleStore } from "@/stores/module";
+import { UseCategoryStore } from "@/stores/category";
 import type { PermissionModel } from "@/models";
 
 // ໃຊ້ຜູກປຸ່ມ create/edit/delete ຂອງໜ້າ CRUD ໃສ່ສິດອະນຸຍາດ (permissions) ຂອງ role ປັດຈຸບັນ
@@ -103,6 +104,33 @@ export const UseModuleNameResolver = () => {
     moduleName,
     moduleOptions: computed(() => moduleStore.module_options),
     loading: computed(() => moduleStore.module_options_loading),
+  };
+};
+
+// ໃຊ້ແປ category_id -> ຊື່ໝວດໝູ່ ໃນຕາຕະລາງ/ຟອມໃດໆ (ດຶງ category_options ຄັ້ງດຽວ, ໃຊ້ຊ້ຳໄດ້ທຸກບ່ອນ)
+export const UseCategoryNameResolver = () => {
+  const categoryStore = UseCategoryStore();
+  if (!categoryStore.category_options_loaded && !categoryStore.category_options_loading) {
+    categoryStore.GetCategoryOptions();
+  }
+
+  const categoryNameById = computed(() => {
+    const map = new Map<number, string>();
+    for (const category of categoryStore.category_options) {
+      map.set(category.id, category.name);
+    }
+    return map;
+  });
+
+  const categoryName = (categoryId: number | null | undefined) => {
+    if (!categoryId) return "-";
+    return categoryNameById.value.get(categoryId) ?? `#${categoryId}`;
+  };
+
+  return {
+    categoryName,
+    categoryOptions: computed(() => categoryStore.category_options),
+    loading: computed(() => categoryStore.category_options_loading),
   };
 };
 

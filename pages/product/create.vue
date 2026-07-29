@@ -1,11 +1,9 @@
 <script setup lang="ts">
 definePageMeta({
   middleware: ["auth"],
+  submenuId: 12,
 });
-
-import CreateProduct from '~/components/Product/CreateProduct.vue';
-
 </script>
 <template>
-    <CreateProduct />
+  <ProductCreate />
 </template>
